@@ -1,5 +1,0 @@
-setup.py
-deeph_pp.egg-info/PKG-INFO
-deeph_pp.egg-info/SOURCES.txt
-deeph_pp.egg-info/dependency_links.txt
-deeph_pp.egg-info/top_level.txt

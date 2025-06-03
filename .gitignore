@@ -1,4 +1,4 @@
 *.egg
 *.egginfo
 .installed.cfg
-
+*egg-info
