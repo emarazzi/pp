@@ -70,7 +70,11 @@ class QEstaticLabelling(Maker):
             #    structure=structure, 
             #    pwi_template=pwi_template_lines, 
             #    )
-            write_qe_input(structure=structure, filename=fname_new_pwi, **qe_kwargs)
+            write_qe_input(
+                structure=structure, 
+                filename=fname_new_pwi, 
+                **qe_kwargs
+                )
 
         # Set number of QE workers
         if self.num_qe_workers is None: # 1 worker per structure (all DFT jobs in parallel)
@@ -216,7 +220,7 @@ class QEstaticLabelling(Maker):
         Run the QE command in a subprocess. Execute one QuantumEspresso calculation on the current input file.
         """
         #Assemble QE command
-        run_cmd = f"{command} < {fname_pwi} >> {fname_pwo}"
+        run_cmd = f"{command} -in {fname_pwi} > {fname_pwo}"
 
         success = False
         try:        
