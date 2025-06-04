@@ -25,7 +25,7 @@ def QEscf(
         "fname_pwi_template": fname_pwi_template,
         "fname_structures": fname_structures,
     }
-
+    print(qe_params)
     # Execute QE static labelling
     # and return the paths to the labelled structures
     dict_of_fout_and_success = QEstaticLabelling(**qe_params).make()
