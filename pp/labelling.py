@@ -14,7 +14,6 @@ from jobflow import job, Flow, Maker, Response
 
 
 from pymatgen.core import Structure
-from pp.dft_inputs import write_qe_input
 
 
 
@@ -45,18 +44,17 @@ class QEstaticLabelling(Maker):
     fname_structures: str | None = None #Path to ASE-readible file containing the structures to be computed
     num_qe_workers: int | None = None #Number of workers to use for the calculations. 
 
-    def make(self, **qe_kwargs):
+    def make(self):
         #Define jobs
         joblist = []
 
         # Load structures
         if self.fname_structures is None: raise ValueError("No structure paths provided. Please provide a list of paths to structures.")
-        #structures = read(self.fname_structures, index=":")
-        structures = [Structure.from_file(structure) for structure in self.fname_structures.split(':')]
+        structures = read(self.fname_structures, index=":")
         if len(structures) == 0: raise ValueError("No structures found in the provided file. Please provide a valid file with structures.")
 
         # Check pwi template
-        #pwi_template_lines = self.check_pwi_template(self.fname_pwi_template)
+        pwi_template_lines = self.check_pwi_template(self.fname_pwi_template)
 
         # Write pwi input files for each structure
         work_dir = os.getcwd()
@@ -65,17 +63,12 @@ class QEstaticLabelling(Maker):
 
         for i, structure in enumerate(structures):
             fname_new_pwi = os.path.join(path_to_qe_workdir, f"structure_{i}.pwi")
-            #self.write_pwi(
-            #    fname_pwi_output=fname_new_pwi,
-            #    structure=structure, 
-            #    pwi_template=pwi_template_lines, 
-            #    )
-            write_qe_input(
+            self.write_pwi(
+                fname_pwi_output=fname_new_pwi,
                 structure=structure, 
-                filename=fname_new_pwi, 
-                **qe_kwargs
+                pwi_template=pwi_template_lines, 
                 )
-
+            
         # Set number of QE workers
         if self.num_qe_workers is None: # 1 worker per structure (all DFT jobs in parallel)
             num_qe_workers = len(glob(os.path.join(path_to_qe_workdir, "*.pwi")))
