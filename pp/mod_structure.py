@@ -1,6 +1,8 @@
 from pymatgen.core import Structure
-from random import randint,random
-import numpy as np
+from random import randint, choice
+from jobflow import job
+import os
+from pathlib import Path
 
 def remove_atom(structure:Structure):
     """
@@ -12,43 +14,42 @@ def remove_atom(structure:Structure):
     structure.remove_sites([idx])
     return structure
 
-def move_atom(structure:Structure, displacement:float=0.1):
-    """
-    Move a random atom by a displacement in a random direction.
-    The modified structure is returned, the modification does not happen in place.
-    """
-    structure = structure.copy()
-    idx = randint(0, len(structure) - 1)
-    direction = [0,0,0]
-    while np.sum(direction) == 0:
-        direction = [randint(-1, 1) for _ in range(3)]
-    norm = sum(d**2 for d in direction)**0.5
-    direction = np.array([d / norm * displacement for d in direction])
-    coords = structure.cart_coords
-    new_coords = [coords[i]+ direction if i == idx else coords[i] for i in range(len(coords))]
+@job
+def generate_training_population(
+    structure:Structure,
+    structures_dir: str | Path,
+    supercell_size: list | tuple = [1,1,1],
+    distance: float = 0.1, 
+    min_distance: float | None = 0.0,  
+    size: int = 200, 
+    include_vacancies: bool = True
+    ) -> list:
 
-    return Structure(structure.lattice, structure.species, new_coords, coords_are_cartesian=True, to_unit_cell=True)
+    structures = []
+    structures_fname = []
+    
+    j = 0
+    fname = os.path.join(structures_dir,f'{j}.cif')
+    structures_fname.append(fname)
+    structure.make_supercell(supercell_size)
+    structure.to(fname)
+    
+    j += 1
+    structure_vac = remove_atom(structure) if include_vacancies else structure.perturb(distance=distance,min_distance=min_distance)
+    fname = os.path.join(structures_dir,f'{j}.cif')
+    structures_fname.append(fname)
+    structure_vac.to(fname)
+    structures = [structure,structure_vac]
 
-def mod_structure(structure:Structure, nmod:int=1, displacement:float=0.1,move_bias:float=0.8):
-    """
-    Modify a structure by removing or moving atoms.
-    The modified structure is returned, the modification does not happen in place.
-    """
-    for _ in range(nmod):
-        if random() > move_bias:
-            structure = remove_atom(structure=structure)
-        else:
-            structure = move_atom(structure=structure, displacement=displacement)
-    return structure
-
-def generate_training_population(structure:Structure, distance:float=0.1, min_distance:float|None=0.0, seed:int|None=None, size:int=200, include_vacancies:bool=True) -> Structure:
-    structures = [structure]
-    for j in range(size-1):
-        if j == 0 and include_vacancies:
-            structures.append(remove_atom(structure))
-        else:
-            structures.append(structure.perturb(distance=distance,min_distance=min_distance,seed=seed))
-    return structures
+    while j < size:
+        j += 1
+        structure = choice(structures).perturb(distance=distance,min_distance=min_distance)
+        fname = os.path.join(structures_dir,f'{j}.cif')
+        structures_fname.append(fname)
+        structure_vac.to(fname)
+    
+    
+    return structures_fname
 
 
 
