@@ -6,7 +6,8 @@ credits to Alberto Pacini
 
 from dataclasses import field
 from jobflow import job, Flow, Response
-from pp.dft_calc.labelling import QEstaticLabelling
+from pp.dft_calc.labelling import QEstaticLabelling, QEpw2bgwLabelling
+import numpy as np
 @job
 def QEscf(
     name: str = "do_qe_static_labelling",
@@ -38,3 +39,58 @@ def QEscf(
 
     return dict_of_fout_and_success
 
+@job
+def QEpw2bgw(
+    name: str = 'pw2bgw',
+    pw2bgw_command : str = 'pw2bgw.x -in',
+    fname_pw2bgw_template: str | None = None,
+    scf_outdir: str | list[str] | None = None,
+    num_workers: int | None = None
+):
+    """
+    Initialize the QEpw2bgwLabelling with the provided parameters.
+
+    Parameters
+    ----------
+    kwargs: dict
+        Dictionary containing the parameters for the QEpw2bgwLabelling.
+    """
+    pw2bgw_params = {
+        'name': name,
+        'pw2bgw_command': pw2bgw_command,
+        'fname_pw2bgw_template': fname_pw2bgw_template,
+        'scf_outdir': scf_outdir,
+        'num_workers': num_workers
+    }    
+    dict_of_fout_and_success = QEpw2bgwLabelling(**pw2bgw_params).make()
+
+    return dict_of_fout_and_success
+
+
+@job
+def WrapperQEpw2bgw(
+    qe_output,
+    name: str = 'pw2bgw',
+    pw2bgw_command : str = 'pw2bgw.x -in',
+    fname_pw2bgw_template: str | None = None,
+    num_workers: int | None = None
+):
+    """
+    Initialize the QEpw2bgwLabelling with the provided parameters.
+
+    Parameters
+    ----------
+    kwargs: dict
+        Dictionary containing the parameters for the QEpw2bgwLabelling.
+    """
+    scf_outdir = np.hstack([output['outdir'] for output in qe_output]).tolist()
+    pw2bgw_params = {
+        'name': name,
+        'pw2bgw_command': pw2bgw_command,
+        'fname_pw2bgw_template': fname_pw2bgw_template,
+        'scf_outdir': scf_outdir,
+        'num_workers': num_workers
+    }    
+    dict_of_fout_and_success = QEpw2bgwLabelling(**pw2bgw_params).make()
+
+    return dict_of_fout_and_success

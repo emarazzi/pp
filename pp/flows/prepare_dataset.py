@@ -1,11 +1,15 @@
 from pymatgen.core import Structure
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from jobflow import Maker, job, Flow, Job
 from pathlib import Path
 from pp.mod_structure import generate_training_population
-from pp.dft_calc.jobs import QEscf
+from pp.dft_calc.jobs import QEscf, QEpw2bgw, WrapperQEpw2bgw
 from atomate2.siesta.jobs.core import StaticMaker
 from pp.hpro import HPROWrapper
+
+from typing import List, Tuple, Union
+
+
 import os
 
 __all__ = [
@@ -22,7 +26,7 @@ class GenerateDFTData(Maker):
     structures_dir: str | Path = './'
     ao_hamiltonian_dir: str | Path = './'
     distance: float = 0.1
-    supercell_size: list| tuple = [1,1,1]
+    supercell_size: List | Tuple = field(default_factory=lambda: [1, 1, 1])
     min_distance: float | None = None
     training_size: int = 500
     include_vacancies: bool = False
@@ -31,9 +35,11 @@ class GenerateDFTData(Maker):
     fname_pwi_template: str = "scf.in"
     upf_dir: str | Path = os.getenv('ESPRESSO_PSEUDO','./')
     ecutwfn: int | float = 30.0
+    num_qe_workers: int | None = None
+    pw2bgw_command: str = "srun --mpi=cray_shasta $PATHQE/bin/pw2bgw.x"
+    fname_pw2bgw_template: str = "pw2bgw.in"
 
-    @job
-    def maker(
+    def make(
         self,
         structure: Structure,
         ao_structure: Structure
@@ -43,10 +49,11 @@ class GenerateDFTData(Maker):
         
         """
 
-        jobs: list[Job] = []
+        jobs = []
 
         gen_structures_job = generate_training_population(
             structure = structure,
+            structures_dir=self.structures_dir,
             distance = self.distance, 
             supercell_size = self.supercell_size,
             min_distance = self.min_distance, 
@@ -55,15 +62,26 @@ class GenerateDFTData(Maker):
             )
         jobs.append(gen_structures_job)
         
+
+
         qe_run_jobs = QEscf(    
             qe_run_cmd = self.qe_run_cmd,
-            num_qe_workers = 1,
+            num_qe_workers = self.num_qe_workers,
             fname_pwi_template = self.fname_pwi_template,
             fname_structures = gen_structures_job.output
         )
         
         jobs.append(qe_run_jobs)
-        
+
+        pw2bgw_run_jobs = WrapperQEpw2bgw(
+            name = 'Pw2Bgw Labelling',
+            pw2bgw_command=self.pw2bgw_command,
+            fname_pw2bgw_template=self.fname_pw2bgw_template,
+            qe_output = qe_run_jobs.output,
+            num_workers = self.num_qe_workers
+        )
+        jobs.append(pw2bgw_run_jobs)
+
         siesta_job = StaticMaker().make(structure=ao_structure)
         
         jobs.append(siesta_job)
@@ -79,17 +97,3 @@ class GenerateDFTData(Maker):
         jobs.append(hpro_job)
 
         return Flow(jobs,output=[j.output for j in jobs],name=self.name)
-
-
-
-
-
-
-        
-
-
-
-
-
-
-        

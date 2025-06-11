@@ -12,7 +12,7 @@ __all__ = [
 @job
 def HPROWrapper(
     qe_run_output: list,
-    siesta_ouput: dict,
+    siesta_ouput: str,
     ao_hamiltonian_dir: str | Path,
     upf_dir: str | Path = os.getenv('ESPRESSO_PSEUDO','./'),
     ecutwfn: int | float = 30.0
@@ -20,16 +20,16 @@ def HPROWrapper(
     
     output = {'ao_dirs':[]}
     jobs = []
-    qe_output_folders = np.hstack([output['outdirs'] for output in qe_run_output])
-
+    qe_output_folders = np.hstack([output['outdir'] for output in qe_run_output])
+    print(type(siesta_ouput))
     for j,qe_output_folder in enumerate(qe_output_folders):
-        os.makedirs(os.path.join(ao_hamiltonian_dir,str(j)))
+        os.makedirs(os.path.join(ao_hamiltonian_dir,str(j)),exist_ok=True)
         hpro_job = ReconstructWrapper(
             qe_folder = qe_output_folder,
             siesta_path = siesta_ouput,
             ao_hamiltonian_dir = os.path.join(ao_hamiltonian_dir,str(j)),
             upf_dir = upf_dir,
-            ecutwfn = ecutwfn
+            ecutwfn = ecutwfn,
         )
         jobs.append(hpro_job)
         output['ao_dirs'].append(os.path.join(ao_hamiltonian_dir,str(j)))

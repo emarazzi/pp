@@ -3,7 +3,7 @@ from random import randint, choice
 from jobflow import job
 import os
 from pathlib import Path
-
+from typing import List, Tuple
 def remove_atom(structure:Structure):
     """
     Remove a random atom from the structure.
@@ -18,7 +18,7 @@ def remove_atom(structure:Structure):
 def generate_training_population(
     structure:Structure,
     structures_dir: str | Path,
-    supercell_size: list | tuple = [1,1,1],
+    supercell_size: List | Tuple = [1,1,1],
     distance: float = 0.1, 
     min_distance: float | None = 0.0,  
     size: int = 200, 
