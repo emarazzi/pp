@@ -91,7 +91,8 @@ class GenerateDFTData(Maker):
             siesta_ouput = siesta_job.output,
             ao_hamiltonian_dir = self.ao_hamiltonian_dir,
             upf_dir = self.upf_dir,
-            ecutwfn = self.ecutwfn
+            ecutwfn = self.ecutwfn,
+            metadata = {'pw2bgw_completed':pw2bgw_run_jobs.output}
         )
 
         jobs.append(hpro_job)
