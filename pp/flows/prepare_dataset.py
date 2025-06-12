@@ -6,6 +6,7 @@ from pp.mod_structure import generate_training_population
 from pp.dft_calc.jobs import QEscf, QEpw2bgw, WrapperQEpw2bgw
 from atomate2.siesta.jobs.core import StaticMaker
 from pp.hpro import HPROWrapper
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from typing import List, Tuple, Union
 
@@ -50,6 +51,10 @@ class GenerateDFTData(Maker):
         """
 
         jobs = []
+        
+        siesta_job = StaticMaker().make(structure=SpacegroupAnalyzer(ao_structure).get_primitive_standard_structure())
+        
+        jobs.append(siesta_job)
 
         gen_structures_job = generate_training_population(
             structure = structure,
@@ -81,10 +86,6 @@ class GenerateDFTData(Maker):
             num_workers = self.num_qe_workers
         )
         jobs.append(pw2bgw_run_jobs)
-
-        siesta_job = StaticMaker().make(structure=ao_structure)
-        
-        jobs.append(siesta_job)
 
         hpro_job = HPROWrapper(
             qe_run_output = qe_run_jobs.output,

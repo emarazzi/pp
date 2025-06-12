@@ -41,7 +41,7 @@ def generate_training_population(
     structure_vac.to(fname)
     structures = [structure,structure_vac]
 
-    while j < size:
+    while j < size-1:
         j += 1
         structure = choice(structures).perturb(distance=distance,min_distance=min_distance)
         fname = os.path.join(structures_dir,f'{j}.cif')
