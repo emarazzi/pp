@@ -53,3 +53,6 @@ def generate_training_population(
 
 
 
+@job
+def add(a,b):
+    return a+b
