@@ -51,8 +51,3 @@ def generate_training_population(
     
     return structures_fname
 
-
-
-@job
-def add(a,b):
-    return a+b
