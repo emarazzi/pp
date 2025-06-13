@@ -408,7 +408,7 @@ class QEpw2bgwLabelling(Maker):
             for line in pw2bgwi_template:
                 f.write(line)
     @job
-    def run_qe_worker(
+    def run_p2b_worker(
             self, 
             id,
             command,
