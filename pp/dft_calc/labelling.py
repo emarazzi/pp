@@ -357,7 +357,7 @@ class QEpw2bgwLabelling(Maker):
         # Launch QE workers            
         outputs = []
         for id_qe_worker in range(num_qe_workers):
-           qe_worker = self.run_qe_worker(
+           qe_worker = self.run_p2b_worker(
                id=id_qe_worker,
                command=self.pw2bgw_command,
                work_dir=path_to_qe_workdir
