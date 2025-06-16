@@ -99,7 +99,8 @@ class QEstaticLabelling(Maker):
 
         # Output is a list of success status, one for each worker
         # The success status is a dictionary with the pwo file name as key and the calculation success status as value (True/False)
-        return Response(replace=Flow(joblist), output=outputs)
+        #return Response(replace=Flow(joblist), output=outputs)
+        return joblist, outputs
 
     def check_pwi_template(self, fname_template):
         """

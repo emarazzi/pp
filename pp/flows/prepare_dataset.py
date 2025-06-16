@@ -89,7 +89,7 @@ class GenerateDFTData(Maker):
 
         hpro_job = HPROWrapper(
             qe_run_output = qe_run_jobs.output,
-            siesta_ouput = siesta_job.output,
+            siesta_output = siesta_job.output,
             ao_hamiltonian_dir = self.ao_hamiltonian_dir,
             upf_dir = self.upf_dir,
             ecutwfn = self.ecutwfn,

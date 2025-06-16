@@ -35,9 +35,10 @@ def QEscf(
 
     # Execute QE static labelling
     # and return the paths to the labelled structures
-    dict_of_fout_and_success = QEstaticLabelling(**qe_params).make()
+    #dict_of_fout_and_success = QEstaticLabelling(**qe_params).make()
+    joblist , outputs = QEstaticLabelling(**qe_params).make()
 
-    return dict_of_fout_and_success
+    return Response(replace=Flow(joblist), output=outputs)
 
 @job
 def QEpw2bgw(
