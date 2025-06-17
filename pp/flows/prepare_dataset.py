@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from jobflow import Maker, job, Flow, Job
 from pathlib import Path
 from pp.mod_structure import generate_training_population
-from pp.dft_calc.jobs import QEscf, QEpw2bgw, WrapperQEpw2bgw
+from pp.dft_calc.jobs import QEscf, QEpw2bgw, QEpw2bgw
 from atomate2.siesta.jobs.core import StaticMaker
 from pp.hpro import HPROWrapper
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -78,7 +78,7 @@ class GenerateDFTData(Maker):
         
         jobs.append(qe_run_jobs)
 
-        pw2bgw_run_jobs = WrapperQEpw2bgw(
+        pw2bgw_run_jobs = QEpw2bgw(
             name = 'Pw2Bgw Labelling',
             pw2bgw_command=self.pw2bgw_command,
             fname_pw2bgw_template=self.fname_pw2bgw_template,
