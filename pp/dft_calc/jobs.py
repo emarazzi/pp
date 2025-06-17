@@ -8,6 +8,7 @@ from dataclasses import field
 from jobflow import job, Flow, Response
 from pp.dft_calc.labelling import QEstaticLabelling, QEpw2bgwLabelling
 import numpy as np
+
 @job
 def QEscf(
     name: str = "do_qe_static_labelling",
@@ -56,7 +57,7 @@ def QEpw2bgw(
         Dictionary containing the parameters for the QEpw2bgwLabelling.
     """
     if np.all([isinstance(out, dict) for out in scf_outdir]):
-        scf_outdir = [out['outdir'] for out in scf_outdir]
+        scf_outdir = np.hstack([out['outdir'] for out in scf_outdir])
     pw2bgw_params = {
         'name': name,
         'pw2bgw_command': pw2bgw_command,
