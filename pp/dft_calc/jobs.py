@@ -57,7 +57,12 @@ def QEpw2bgw(
         Dictionary containing the parameters for the QEpw2bgwLabelling.
     """
     if np.all([isinstance(out, dict) for out in scf_outdir]):
+        success = np.hstack([out['success'] for out in scf_outdir]).tolist()
         scf_outdir = np.hstack([out['outdir'] for out in scf_outdir]).tolist()
+        if not np.all(success):
+            print("Not all scf calculation where successful, only the successfull one will be parsed to HPRO.")
+        scf_outdir = [dir for dir,succ in zip(scf_outdir,success) if succ]
+    
     pw2bgw_params = {
         'name': name,
         'pw2bgw_command': pw2bgw_command,
