@@ -27,7 +27,7 @@ def HPROWrapper(
         os.makedirs(os.path.join(ao_hamiltonian_dir,str(j)),exist_ok=True)
         hpro_job = ReconstructWrapper(
             qe_folder = qe_output_folder,
-            siesta_path = siesta_ouput,
+            siesta_path = siesta_output,
             ao_hamiltonian_dir = os.path.join(ao_hamiltonian_dir,str(j)),
             upf_dir = upf_dir,
             ecutwfn = ecutwfn,

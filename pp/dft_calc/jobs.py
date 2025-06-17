@@ -35,42 +35,13 @@ def QEscf(
 
     # Execute QE static labelling
     # and return the paths to the labelled structures
-    #dict_of_fout_and_success = QEstaticLabelling(**qe_params).make()
-    joblist , outputs = QEstaticLabelling(**qe_params).make()
+    output_per_worker = QEstaticLabelling(**qe_params).make()
 
-    return Response(replace=Flow(joblist), output=outputs)
+    return output_per_worker
 
 @job
 def QEpw2bgw(
-    name: str = 'pw2bgw',
-    pw2bgw_command : str = 'pw2bgw.x -in',
-    fname_pw2bgw_template: str | None = None,
-    scf_outdir: str | list[str] | None = None,
-    num_workers: int | None = None
-):
-    """
-    Initialize the QEpw2bgwLabelling with the provided parameters.
-
-    Parameters
-    ----------
-    kwargs: dict
-        Dictionary containing the parameters for the QEpw2bgwLabelling.
-    """
-    pw2bgw_params = {
-        'name': name,
-        'pw2bgw_command': pw2bgw_command,
-        'fname_pw2bgw_template': fname_pw2bgw_template,
-        'scf_outdir': scf_outdir,
-        'num_workers': num_workers
-    }    
-    dict_of_fout_and_success = QEpw2bgwLabelling(**pw2bgw_params).make()
-
-    return dict_of_fout_and_success
-
-
-@job
-def WrapperQEpw2bgw(
-    qe_output,
+    scf_outdir: list[str] | list[dict],
     name: str = 'pw2bgw',
     pw2bgw_command : str = 'pw2bgw.x -in',
     fname_pw2bgw_template: str | None = None,
@@ -84,7 +55,8 @@ def WrapperQEpw2bgw(
     kwargs: dict
         Dictionary containing the parameters for the QEpw2bgwLabelling.
     """
-    scf_outdir = np.hstack([output['outdir'] for output in qe_output]).tolist()
+    if np.all([isinstance(out, dict) for out in scf_outdir]):
+        scf_outdir = [out['outdir'] for out in scf_outdir]
     pw2bgw_params = {
         'name': name,
         'pw2bgw_command': pw2bgw_command,
@@ -92,6 +64,7 @@ def WrapperQEpw2bgw(
         'scf_outdir': scf_outdir,
         'num_workers': num_workers
     }    
-    dict_of_fout_and_success = QEpw2bgwLabelling(**pw2bgw_params).make()
+    output_per_worker = QEpw2bgwLabelling(**pw2bgw_params).make()
 
-    return dict_of_fout_and_success
+    return output_per_worker
+

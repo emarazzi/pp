@@ -99,8 +99,8 @@ class QEstaticLabelling(Maker):
 
         # Output is a list of success status, one for each worker
         # The success status is a dictionary with the pwo file name as key and the calculation success status as value (True/False)
-        #return Response(replace=Flow(joblist), output=outputs)
-        return joblist, outputs
+        qe_wrk_flow = Flow(jobs=joblist, output=outputs, name="qe_workers")
+        return Response(replace=qe_wrk_flow, output=qe_wrk_flow.output)
 
     def check_pwi_template(self, fname_template):
         """
@@ -367,10 +367,10 @@ class QEpw2bgwLabelling(Maker):
            qe_worker.name = f"run_qe_worker_{id_qe_worker}"
            joblist.append(qe_worker)
            outputs.append(qe_worker.output) #Contains list of dict{'successes', 'pwo_files', 'outdirs'} for each worker
-
+        qe_wrk_flow = Flow(jobs=joblist, output=outputs)
         # Output is a list of success status, one for each worker
         # The success status is a dictionary with the pwo file name as key and the calculation success status as value (True/False)
-        return Response(replace=Flow(joblist), output=outputs)
+        return Response(replace=qe_wrk_flow, output=outputs)
 
     def read_pw2bgwi_template(self, fname_template):
         """
