@@ -79,10 +79,10 @@ class GenerateDFTData(Maker):
         jobs.append(qe_run_jobs)
 
         pw2bgw_run_jobs = QEpw2bgw(
+            scf_outdir = qe_run_jobs.output,
             name = 'Pw2Bgw Labelling',
             pw2bgw_command=self.pw2bgw_command,
             fname_pw2bgw_template=self.fname_pw2bgw_template,
-            qe_output = qe_run_jobs.output,
             num_workers = 1
         )
         jobs.append(pw2bgw_run_jobs)
