@@ -8,7 +8,7 @@ import os
 from pp.utils import cp_ion
 
 @dataclass 
-class GenereateIons(Maker):
+class GenerateIons(Maker):
     """
     Maker to generate the database of the ion files from siesta 
     from a specific set of pseudos
