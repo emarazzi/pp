@@ -27,7 +27,7 @@ def generate_training_population(
 
     structures_fname = []
     structure.make_supercell(supercell_size)
-
+    j = 0
     while len(structures_fname) < size:
         j += 1
         structure = structure.perturb(distance=distance,min_distance=min_distance)
