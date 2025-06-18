@@ -1,7 +1,7 @@
 from pymatgen.core import Structure
 from dataclasses import dataclass, field
 from jobflow import job, Flow, Maker
-from atomate2.siesta.jobs import StaticMaker
+from atomate2.siesta.jobs.core import StaticMaker
 from pathlib import Path
 from glob import glob
 import os
@@ -21,7 +21,7 @@ class GenerateIons(Maker):
         self,
         pseudo_psml_dir: str | Path,
         save_ion_folder: str | Path,
-        database_folder: str | Path = '../database_folder'
+        database_folder: str | Path,
     ) -> Flow:
         """
         Maker to generate all the siesta jobs, collect the ion files and 
