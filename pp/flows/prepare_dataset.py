@@ -63,7 +63,7 @@ class GenerateDFTData(Maker):
             supercell_size = self.supercell_size,
             min_distance = self.min_distance, 
             size =  self.training_size, 
-            include_vacancies =  self.include_vacancies
+            #include_vacancies =  self.include_vacancies
             )
         jobs.append(gen_structures_job)
         
