@@ -35,13 +35,13 @@ class GenereateIons(Maker):
 
         for pseudo in pseudos:
             element  = pseudo.split('/')[-1].split('.')[0]
-            if os.path.exists(os.path.join(database_folder,f"{element}.cif"))
-            structure = Structure.from_file(os.path.join(database_folder,f'{element}.cif'))
-            job_ion = StaticMaker().make(structure=structure)
-            
-            job_ion.name = element
-            
-            jobs.append(job_ion)
+            if os.path.exists(os.path.join(database_folder,f"{element}.cif")):
+                structure = Structure.from_file(os.path.join(database_folder,f'{element}.cif'))
+                job_ion = StaticMaker().make(structure=structure)
+                
+                job_ion.name = element
+                
+                jobs.append(job_ion)
         job_copy = cp_ion(outdirs = [job.output for job in jobs],ion_dir = save_ion_folder)
         jobs.append(job_copy)
 
