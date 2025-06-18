@@ -22,32 +22,18 @@ def generate_training_population(
     distance: float = 0.1, 
     min_distance: float | None = 0.0,  
     size: int = 200, 
-    include_vacancies: bool = True
+    #include_vacancies: bool = True
     ) -> list:
 
-    structures = []
     structures_fname = []
     structure.make_supercell(supercell_size)
 
-    j = 0
-    fname = os.path.join(structures_dir,f'{j}.cif')
-    structures_fname.append(fname)
-    structure1 = structure.perturb(distance=distance,min_distance=min_distance)
-    structure1.to(fname)
-    
-    j += 1
-    structure_vac = remove_atom(structure) if include_vacancies else structure1.perturb(distance=distance,min_distance=min_distance)
-    fname = os.path.join(structures_dir,f'{j}.cif')
-    structures_fname.append(fname)
-    structure_vac.to(fname)
-    structures = [structure,structure_vac]
-
-    while j < size-1:
+    while len(structures_fname) < size:
         j += 1
-        structure = choice(structures).perturb(distance=distance,min_distance=min_distance)
+        structure = structure.perturb(distance=distance,min_distance=min_distance)
         fname = os.path.join(structures_dir,f'{j}.cif')
         structures_fname.append(fname)
-        structure_vac.to(fname)
+        structure.to(fname)
     
     
     return structures_fname
