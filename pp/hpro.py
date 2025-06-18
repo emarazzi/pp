@@ -37,7 +37,7 @@ def HPROWrapper(
     
     flow = Flow(jobs=jobs,output=output)
 
-    return Response(replace=flow)
+    return Response(replace=flow,output=output)
 
 
 @job

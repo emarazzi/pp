@@ -2,7 +2,13 @@ from pymatgen.core import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 import numpy as np
 from typing import List
-
+import os
+import json
+from jobflow import job
+from pathlib import Path
+from shutil import copy
+import re
+from glob import glob
 
 def standard_primitive(file_in,file_out=None):
     structure = Structure.from_file(file_in)
@@ -64,3 +70,35 @@ def read_eig_hpro(filename: str):
     file.close()
     return bands
 
+def write_dh_structure(structure:Structure, save_dir: str = './'):
+    with open(os.path.join(save_dir,'element.dat'),'w') as file:
+        for species in structure.species:
+            file.write(f"{species.symbol}\n")
+    lattice = np.transpose(structure.lattice.matrix)
+    with open(os.path.join(save_dir,'lat.dat'),'w') as file:
+        for vec in lattice:
+            file.write(f"{vec[0]:.10f}  {vec[1]:.10f}  {vec[2]:.10f}\n")
+    cart_coords = np.transpose(structure.cart_coords)
+    with open(os.path.join(save_dir,'site_positions.dat'),'w') as file:
+        for coords in cart_coords:
+            file.write(f"{coords[0]:.10f}  {coords[1]:.10f}  {coords[2]:.10f}\n")
+    d = {"isspinful": False, "fermi_level": 0.0}
+    with open(os.path.join(save_dir,"info.json"), "w") as json_file:
+        json.dump(d, json_file, indent=4)  # `indent` makes the output readable
+    
+
+@job
+def cp_ion(outdirs: str | Path | list[str] | list[Path], ion_dir: str | Path) -> Path:
+    element = re.compile(r'\w+\.')
+    if isinstance(outdirs, str | Path):
+        outdirs = [Path(outdirs)]
+    else:
+        outdirs = [Path(outdir) for outdir in outdirs]
+    ion_dir = Path(ion_dir)
+    for outdir in outdirs:
+        ion_files = list(outdir.glob('*ion'))
+        ion_file = [ionf for ionf in ion_files if len(element.findall(ionf.name))==1]
+        for ionf in ion_file:
+            copy(src=ionf,dst=ion_dir)
+
+    return ion_dir
