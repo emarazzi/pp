@@ -2,11 +2,9 @@ from pymatgen.core import Structure
 from dataclasses import dataclass, field
 from jobflow import Maker, job, Flow, Job
 from pathlib import Path
-from pp.mod_structure import generate_training_population
-from pp.dft_calc.jobs import QEscf, QEpw2bgw, QEpw2bgw
-from atomate2.siesta.jobs.core import StaticMaker
-from pp.hpro import HPROWrapper
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pp.jobs.mod_structure import generate_training_population
+from pp.jobs.jobs import QEscf, QEpw2bgw, QEpw2bgw
+from pp.jobs.hpro import HPROWrapper
 
 from typing import List, Tuple, Union
 
@@ -39,11 +37,11 @@ class GenerateDFTData(Maker):
     num_qe_workers: int | None = None
     pw2bgw_command: str = "srun --mpi=cray_shasta $PATHQE/bin/pw2bgw.x"
     fname_pw2bgw_template: str = "pw2bgw.in"
+    ion_dir: str | Path = './'
 
     def make(
         self,
         structure: Structure,
-        ao_structure: Structure
         ):
         """
         Create the flow to generate DFT data
@@ -51,10 +49,6 @@ class GenerateDFTData(Maker):
         """
 
         jobs = []
-        
-        siesta_job = StaticMaker().make(structure=SpacegroupAnalyzer(ao_structure).get_primitive_standard_structure())
-        
-        jobs.append(siesta_job)
 
         gen_structures_job = generate_training_population(
             structure = structure,
@@ -89,7 +83,7 @@ class GenerateDFTData(Maker):
 
         hpro_job = HPROWrapper(
             qe_run_output = qe_run_jobs.output,
-            siesta_output = siesta_job.output,
+            ion_dir = self.ion_dir,
             ao_hamiltonian_dir = self.ao_hamiltonian_dir,
             upf_dir = self.upf_dir,
             ecutwfn = self.ecutwfn,

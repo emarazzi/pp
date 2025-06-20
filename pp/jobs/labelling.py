@@ -478,3 +478,11 @@ class QEpw2bgwLabelling(Maker):
             pwi_lock_fname = ""  
         
         return pwi_lock_fname, pwo_fname
+    
+
+@dataclass
+class QEbandLabelling(Maker):
+    pass
+@dataclass
+class QEnscfLabelling(Maker):
+    pass

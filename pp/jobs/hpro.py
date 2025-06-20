@@ -12,7 +12,7 @@ __all__ = [
 @job
 def HPROWrapper(
     qe_run_output: list,
-    siesta_output: str,
+    ion_dir: str | Path,
     ao_hamiltonian_dir: str | Path,
     upf_dir: str | Path = os.getenv('ESPRESSO_PSEUDO','./'),
     ecutwfn: int | float = 30.0,
@@ -27,7 +27,7 @@ def HPROWrapper(
         os.makedirs(os.path.join(ao_hamiltonian_dir,str(j)),exist_ok=True)
         hpro_job = ReconstructWrapper(
             qe_folder = qe_output_folder,
-            siesta_path = siesta_output,
+            siesta_path = ion_dir,
             ao_hamiltonian_dir = os.path.join(ao_hamiltonian_dir,str(j)),
             upf_dir = upf_dir,
             ecutwfn = ecutwfn,

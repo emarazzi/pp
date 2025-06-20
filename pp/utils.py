@@ -30,7 +30,7 @@ class KPath:
         mindist = min(dist)
         weights = dist / mindist * self.ndivsm
         return weights
-    def print_qe_path(self,filename:str=None):
+    def print_qe_path(self,filename: str | None = None):
         weights = self.get_weights()
         weights = np.concatenate((weights,np.array([1])))
         if filename:
@@ -84,7 +84,7 @@ def write_dh_structure(structure:Structure, save_dir: str = './'):
             file.write(f"{coords[0]:.10f}  {coords[1]:.10f}  {coords[2]:.10f}\n")
     d = {"isspinful": False, "fermi_level": 0.0}
     with open(os.path.join(save_dir,"info.json"), "w") as json_file:
-        json.dump(d, json_file, indent=4)  # `indent` makes the output readable
+        json.dump(d, json_file, indent=4)
     
 
 @job
