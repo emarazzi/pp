@@ -16,6 +16,7 @@ def HPROWrapper(
     ao_hamiltonian_dir: str | Path,
     upf_dir: str | Path = os.getenv('ESPRESSO_PSEUDO','./'),
     ecutwfn: int | float = 30.0,
+    metadata: dict[str, Any] = {}
 ) -> Flow:
     
     output = {'ao_dirs':[]}

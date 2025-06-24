@@ -158,11 +158,12 @@ class GenerateDFTData(Maker):
 
         if self.run_hpro:
             hpro_job = HPROWrapper(
-                  qe_run_output = pw2bgw_run_jobs.output if self.run_pw2bgw else self.qe_scf_outdir,
+                  qe_run_output = qe_run_jobs.output if self.run_qe_scf else self.qe_scf_outdir,
                   ion_dir = self.ion_dir,
                   ao_hamiltonian_dir = self.ao_hamiltonian_dir,
                   upf_dir = self.upf_dir,
                   ecutwfn = self.ecutwfn,
+                  metadata = {'has_pw2bgw_completed':pw2bgw_run_jobs if self.run_pw2bgw else None}, 
             )
 
             jobs.append(hpro_job)
