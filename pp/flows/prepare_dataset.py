@@ -124,43 +124,47 @@ class GenerateDFTData(Maker):
         """
         jobs: List[Job] = []
 
-        gen_structures_job = generate_training_population(
+        if self.run_generate_population:
+            gen_structures_job = generate_training_population(
             structure = structure,
             structures_dir = self.structures_dir,
             distance = self.distance, 
             supercell_size = self.supercell_size,
             min_distance = self.min_distance, 
             size =  self.training_size,     
-        )
-        jobs.append(gen_structures_job)
+            )
+            jobs.append(gen_structures_job)
 
-        qe_run_jobs = QEscf(dict(
-            qe_run_cmd = self.qe_run_cmd,
-            num_qe_workers = self.num_qe_workers,
-            fname_pwi_template = self.fname_pwi_template,
-            fname_structures = gen_structures_job.output if self.run_generate_population else self.structures_names,
-            kspace_resolution = self.kspace_resolution,
-            koffset = self.koffset
-       ))
-        jobs.append(qe_run_jobs)
+        if self.run_qe_scf:
+            qe_run_jobs = QEscf(dict(
+                  qe_run_cmd = self.qe_run_cmd,
+                  num_qe_workers = self.num_qe_workers,
+                  fname_pwi_template = self.fname_pwi_template,
+                  fname_structures = gen_structures_job.output if self.run_generate_population else self.structures_names,
+                  kspace_resolution = self.kspace_resolution,
+                  koffset = self.koffset
+            ))
+            jobs.append(qe_run_jobs)
 
-        pw2bgw_run_jobs = QEpw2bgw(
-            scf_outdir = qe_run_jobs.output if self.run_qe_scf else self.qe_scf_outdir,
-            name = 'Pw2Bgw Labelling',
-            pw2bgw_command = self.pw2bgw_run_cmd,
-            fname_pw2bgw_template = self.fname_pw2bgw_template,
-            num_workers = 1
-        )
-        jobs.append(pw2bgw_run_jobs)
+        if self.run_pw2bgw:
+            pw2bgw_run_jobs = QEpw2bgw(
+                  scf_outdir = qe_run_jobs.output if self.run_qe_scf else self.qe_scf_outdir,
+                  name = 'Pw2Bgw Labelling',
+                  pw2bgw_command = self.pw2bgw_run_cmd,
+                  fname_pw2bgw_template = self.fname_pw2bgw_template,
+                  num_workers = 1
+            )
+            jobs.append(pw2bgw_run_jobs)
 
-        hpro_job = HPROWrapper(
-            qe_run_output = pw2bgw_run_jobs.output if self.run_pw2bgw else self.qe_scf_outdir,
-            ion_dir = self.ion_dir,
-            ao_hamiltonian_dir = self.ao_hamiltonian_dir,
-            upf_dir = self.upf_dir,
-            ecutwfn = self.ecutwfn,
-        )
+        if self.run_hpro:
+            hpro_job = HPROWrapper(
+                  qe_run_output = pw2bgw_run_jobs.output if self.run_pw2bgw else self.qe_scf_outdir,
+                  ion_dir = self.ion_dir,
+                  ao_hamiltonian_dir = self.ao_hamiltonian_dir,
+                  upf_dir = self.upf_dir,
+                  ecutwfn = self.ecutwfn,
+            )
 
-        jobs.append(hpro_job)
+            jobs.append(hpro_job)
 
         return Flow(jobs, output = [j.output for j in jobs], name=self.name)
