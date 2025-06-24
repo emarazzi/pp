@@ -8,6 +8,7 @@ from dataclasses import field
 from jobflow import job, Flow, Response
 from pp.jobs.labelling import QEstaticLabelling, QEpw2bgwLabelling , QEnscfLabelling, QEbandLabelling, qe_params_from_config
 import numpy as np
+from typing import List, Union, Optional, Dict
 
 @job
 def QEscf(
@@ -105,7 +106,7 @@ def QEband(
 
 @job
 def QEpw2bgw(
-    scf_outdir: list[str] | list[dict],
+    scf_outdir: List[str] | List[dict],
     name: str = 'pw2bgw',
     pw2bgw_command : str = 'pw2bgw.x -in',
     fname_pw2bgw_template: str | None = None,

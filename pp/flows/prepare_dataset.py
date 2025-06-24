@@ -64,7 +64,19 @@ class GenerateDFTData(Maker):
         ion_dir: Union[str, Path]
               Directory containing the ion files generated with siesta
     """
-    name: str = "GenerateDFTData"   
+    name: str = "GenerateDFTData"
+    
+    # what to run
+    run_generate_population: bool = True
+    run_qe_scf: bool = True
+    run_pw2bgw: bool = True
+    run_hpro: bool = True
+    # if so of the above is False, provide the corresponding below
+    structures_names: Optional[List[str]] = None # list of names of paths to structures to run QE
+    qe_scf_outdir: Optional[List[dict]] = None # list of dict with qe output paths and success status
+                                               # must contain 'outdir' and 'success' keys
+                                               # the directory must cointain prefix.save folder if pw2bgw.x needs to be run
+                                               # and VSC file if only HPRO is run
     structures_dir: Union[str, Path] = './'
     ao_hamiltonian_dir: Union[str, Path] = './'
     distance: float = 0.1
@@ -84,6 +96,18 @@ class GenerateDFTData(Maker):
     fname_pw2bgw_template: str = "pw2bgw.in"
     ion_dir: Union[str, Path] = './'
 
+    def __post_init__(self):
+        if self.run_generate_population is None and self.structures_names is None:
+            raise ValueError("You should either run the generate_training_population job \
+                              or provide a list of structures names to run QE on.")
+        if self.run_qe_scf is None and self.qe_scf_outdir is None:
+            raise ValueError("You should either run the QEscf job \
+                              or provide a list of dict with qe output paths and success status.")
+        if self.run_pw2bgw is None and self.qe_scf_outdir is None:
+            raise ValueError("You should either run the QEpw2bgw job \
+                              or provide a list of dict with qe output paths and success status \
+                              that contains the VSC files.")
+        
     def make(
         self,
         structure: Structure,
@@ -114,14 +138,14 @@ class GenerateDFTData(Maker):
             qe_run_cmd = self.qe_run_cmd,
             num_qe_workers = self.num_qe_workers,
             fname_pwi_template = self.fname_pwi_template,
-            fname_structures = gen_structures_job.output,
+            fname_structures = gen_structures_job.output if self.run_generate_population else self.structures_names,
             kspace_resolution = self.kspace_resolution,
             koffset = self.koffset
        ))
         jobs.append(qe_run_jobs)
 
         pw2bgw_run_jobs = QEpw2bgw(
-            scf_outdir = qe_run_jobs.output,
+            scf_outdir = qe_run_jobs.output if self.run_qe_scf else self.qe_scf_outdir,
             name = 'Pw2Bgw Labelling',
             pw2bgw_command = self.pw2bgw_run_cmd,
             fname_pw2bgw_template = self.fname_pw2bgw_template,
@@ -130,7 +154,7 @@ class GenerateDFTData(Maker):
         jobs.append(pw2bgw_run_jobs)
 
         hpro_job = HPROWrapper(
-            qe_run_output = pw2bgw_run_jobs.output,
+            qe_run_output = pw2bgw_run_jobs.output if self.run_pw2bgw else self.qe_scf_outdir,
             ion_dir = self.ion_dir,
             ao_hamiltonian_dir = self.ao_hamiltonian_dir,
             upf_dir = self.upf_dir,
