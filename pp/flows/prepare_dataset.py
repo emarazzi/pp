@@ -114,7 +114,7 @@ class GenerateDFTData(Maker):
             qe_run_cmd = self.qe_run_cmd,
             num_qe_workers = self.num_qe_workers,
             fname_pwi_template = self.fname_pwi_template,
-            fname_structures = gen_structures_job.output
+            fname_structures = gen_structures_job.output,
             kspace_resolution = self.kspace_resolution,
             koffset = self.koffset
        ))
