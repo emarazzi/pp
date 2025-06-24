@@ -74,7 +74,7 @@ class GenerateDFTData(Maker):
     upf_dir: Union[str, Path] = os.getenv('ESPRESSO_PSEUDO', './')
     ecutwfn: Union[int, float] = 30.0
     num_qe_workers: Optional[int] = None
-    pw2bgw_run_cmd: str = "srun --mpi=cray_shasta $PATHQE/bin/pw2bgw.x"
+    pw2bgw_run_cmd: str = "$PATHQE/bin/pw2bgw.x"
     fname_pw2bgw_template: str = "pw2bgw.in"
     ion_dir: Union[str, Path] = './'
 
