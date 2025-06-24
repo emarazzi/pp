@@ -110,12 +110,12 @@ class GenerateDFTData(Maker):
         )
         jobs.append(gen_structures_job)
 
-        qe_run_jobs = QEscf(
+        qe_run_jobs = QEscf(dict(
             qe_run_cmd = self.qe_run_cmd,
             num_qe_workers = self.num_qe_workers,
             fname_pwi_template = self.fname_pwi_template,
             fname_structures = gen_structures_job.output
-        )
+        ))
         jobs.append(qe_run_jobs)
 
         pw2bgw_run_jobs = QEpw2bgw(
