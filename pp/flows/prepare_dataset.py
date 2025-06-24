@@ -60,11 +60,11 @@ class GenerateDFTData(Maker):
         ion_dir: Union[str, Path]
               Directory containing the ion files generated with siesta
     """
-    name: str = "GenerateDFTData"
+    name: str = "GenerateDFTData"   
     structures_dir: Union[str, Path] = './'
     ao_hamiltonian_dir: Union[str, Path] = './'
     distance: float = 0.1
-    min_distance: Optional[float,int] = 0.001
+    min_distance: Optional[float] = 0.001
     supercell_size: Union[List[int], Tuple[int, ...]] = field(default_factory=lambda: [1, 1, 1])
     training_size: int = 500
     include_vacancies: bool = False
