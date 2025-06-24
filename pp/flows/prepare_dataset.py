@@ -50,6 +50,10 @@ class GenerateDFTData(Maker):
               ecutwfn variable from QE, used only for HPRO.
               To set a specific value of ecutwfn in your QE calculation
               modify the scf template.
+        kspace_resolution: Optional[float] = None
+                  K-space resolution for the scf calculations in Angostrom^-1.
+        koffset: list[bool] = field(default_factory=lambda: [False, False, False])
+                  K-point offset for the scf calculations.
         num_qe_workers: Optional[int] = None
               Number of workers to execute pw.x calculations.
               Default to None that corresponds to one worker per structure
@@ -73,6 +77,8 @@ class GenerateDFTData(Maker):
     fname_pwi_template: str = "scf.in"
     upf_dir: Union[str, Path] = os.getenv('ESPRESSO_PSEUDO', './')
     ecutwfn: Union[int, float] = 30.0
+    kspace_resolution: Optional[float] = None
+    koffset: List[bool] = field(default_factory=lambda: [False, False,False])
     num_qe_workers: Optional[int] = None
     pw2bgw_run_cmd: str = "$PATHQE/bin/pw2bgw.x"
     fname_pw2bgw_template: str = "pw2bgw.in"
