@@ -163,7 +163,7 @@ class GenerateDFTData(Maker):
                   ao_hamiltonian_dir = self.ao_hamiltonian_dir,
                   upf_dir = self.upf_dir,
                   ecutwfn = self.ecutwfn,
-                  metadata = {'has_pw2bgw_completed':pw2bgw_run_jobs.output if self.run_pw2bgw else 'has_pw2bgw_completed':True}, 
+                  metadata = {'has_pw2bgw_completed':pw2bgw_run_jobs.output if self.run_pw2bgw else True}, 
             )
 
             jobs.append(hpro_job)
