@@ -30,10 +30,10 @@ def generate_training_population(
     j = 0
     while len(structures_fname) < size:
         j += 1
-        structure = structure.perturb(distance=distance,min_distance=min_distance)
+        stru = structure.perturb(distance=distance,min_distance=min_distance)
         fname = os.path.join(structures_dir,f'{j}.cif')
         structures_fname.append(fname)
-        structure.to(fname)
+        stru.to(fname)
     
     
     return structures_fname
