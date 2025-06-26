@@ -97,16 +97,16 @@ class GenerateDFTData(Maker):
     ion_dir: Union[str, Path] = './'
 
     def __post_init__(self):
-        if self.run_generate_population is None and self.structures_names is None:
+        if self.run_qe_scf is not None and not (self.structures_names or self.generate_training_population):
             raise ValueError("You should either run the generate_training_population job \
-                              or provide a list of structures names to run QE on.")
-        if self.run_qe_scf is None and self.qe_scf_outdir is None:
+                              or provide a list of structures names to run QE.")
+        if self.run_pw2bgw is not None and not (self.qe_scf_outdir of self.run_qe_scf):
             raise ValueError("You should either run the QEscf job \
-                              or provide a list of dict with qe output paths and success status.")
-        if self.run_pw2bgw is None and self.qe_scf_outdir is None:
+                              or provide a list of dict with qe output paths and success status to run pw2bgw.")
+        if self.run_hpro is not None and not (self.qe_scf_outdir or self.run_pw2bgw):
             raise ValueError("You should either run the QEpw2bgw job \
                               or provide a list of dict with qe output paths and success status \
-                              that contains the VSC files.")
+                              that contains the VSC files to run HPRO.")
         
     def make(
         self,
@@ -163,7 +163,7 @@ class GenerateDFTData(Maker):
                   ao_hamiltonian_dir = self.ao_hamiltonian_dir,
                   upf_dir = self.upf_dir,
                   ecutwfn = self.ecutwfn,
-                  metadata = {'has_pw2bgw_completed':pw2bgw_run_jobs.output if self.run_pw2bgw else None}, 
+                  metadata = {'has_pw2bgw_completed':pw2bgw_run_jobs.output if self.run_pw2bgw else 'has_pw2bgw_completed':True}, 
             )
 
             jobs.append(hpro_job)
