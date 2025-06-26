@@ -100,7 +100,7 @@ class GenerateDFTData(Maker):
         if self.run_qe_scf is not None and not (self.structures_names or self.generate_training_population):
             raise ValueError("You should either run the generate_training_population job \
                               or provide a list of structures names to run QE.")
-        if self.run_pw2bgw is not None and not (self.qe_scf_outdir of self.run_qe_scf):
+        if self.run_pw2bgw is not None and not (self.qe_scf_outdir or self.run_qe_scf):
             raise ValueError("You should either run the QEscf job \
                               or provide a list of dict with qe output paths and success status to run pw2bgw.")
         if self.run_hpro is not None and not (self.qe_scf_outdir or self.run_pw2bgw):
