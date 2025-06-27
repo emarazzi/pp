@@ -97,7 +97,7 @@ class GenerateDFTData(Maker):
     ion_dir: Union[str, Path] = './'
 
     def __post_init__(self):
-        if self.run_qe_scf is not None and not (self.structures_names or self.generate_training_population):
+        if self.run_qe_scf is not None and not (self.structures_names or self.run_generate_population):
             raise ValueError("You should either run the generate_training_population job \
                               or provide a list of structures names to run QE.")
         if self.run_pw2bgw is not None and not (self.qe_scf_outdir or self.run_qe_scf):
