@@ -2,7 +2,7 @@ from HPRO import PW2AOkernel
 from jobflow import job, Flow, Response
 from pathlib import Path
 import os
-from typing import Any
+from typing import Any, List, Union
 import numpy as np
 
 __all__ = [
@@ -11,13 +11,33 @@ __all__ = [
 
 @job
 def HPROWrapper(
-    qe_run_output: list,
-    ion_dir: str | Path,
-    ao_hamiltonian_dir: str | Path,
-    upf_dir: str | Path = os.getenv('ESPRESSO_PSEUDO','./'),
-    ecutwfn: int | float = 30.0,
+    qe_run_output: List,
+    ion_dir: Union[str, Path],
+    ao_hamiltonian_dir: Union[str, Path],
+    upf_dir: Union[str, Path] = os.getenv('ESPRESSO_PSEUDO','./'),
+    ecutwfn: Union[int, float] = 30.0,
     metadata: dict[str, Any] = {}
 ) -> Flow:
+    """
+    Wrapper to prepare the HPRO jobs
+
+    Args:
+    ----
+    qe_run_output: List[dict]
+        list of dictionaries with the outputs of the QE workers
+    ion_dir: Union[str, Path]
+        folder with the x.ion files
+    ao_hamiltonian_dir: Union[str, Path]
+        folder to save the generated data
+    upf_dir: Union[str, Path]
+        folder with upf pseudos for QE
+        Default is to read the $ESPRESSO_PSEUDO environment variable
+    ecutwfn:
+        Energy cutoff in Hartree
+    
+    Returns:
+        Flow with the HPRO jobs    
+    """
     
     output = {'ao_dirs':[]}
     jobs = []
