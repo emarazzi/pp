@@ -28,7 +28,7 @@ class GenerateIons(Maker):
         pseudo_psml_dir: Union[str, Path],
         save_ion_folder: Union[str, Path],
         database_folder: Union[str, Path],
-        basis_set: str = field(default='DZ')
+        basis_set: str = 'DZ'
     ) -> Flow:
         """
         Generate all the SIESTA jobs, collect the ion files, and
