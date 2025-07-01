@@ -1,7 +1,8 @@
 from pymatgen.core import Structure
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from jobflow import Flow, Maker, Job
 from atomate2.siesta.jobs.core import StaticMaker
+from atomate2.siesta.sets.core import StaticSetGenerator
 from pathlib import Path
 from glob import glob
 from typing import Union, List
@@ -27,6 +28,7 @@ class GenerateIons(Maker):
         pseudo_psml_dir: Union[str, Path],
         save_ion_folder: Union[str, Path],
         database_folder: Union[str, Path],
+        basis_set: str = field(default='DZ')
     ) -> Flow:
         """
         Generate all the SIESTA jobs, collect the ion files, and
@@ -56,8 +58,9 @@ class GenerateIons(Maker):
             cif_path: str = os.path.join(database_folder, f"{element}.cif")
             if os.path.exists(cif_path):
                 structure: Structure = Structure.from_file(cif_path)
-                job_ion: Job = StaticMaker().make(structure=structure)
-                
+                static_set_generator = StaticSetGenerator(basis_set=basis_set)
+                job_ion: Job = StaticMaker(input_set_generator=static_set_generator).make(structure=structure)
+
                 job_ion.name = element
                 
                 jobs.append(job_ion)

@@ -31,7 +31,7 @@ def HPROWrapper(
         folder to save the generated data
     upf_dir: Union[str, Path]
         folder with upf pseudos for QE
-        Default is to read the $ESPRESSO_PSEUDO environment variable
+        Default is the $ESPRESSO_PSEUDO environment variable
     ecutwfn:
         Energy cutoff in Hartree
     
