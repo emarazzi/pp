@@ -13,7 +13,7 @@ from pp.utils import cp_ion
 class GenerateIons(Maker):
     """
     Maker to generate the database of the ion files from siesta 
-    from a specific set of pseudos
+    from a specific set of pseudos, and for a specified basis set
 
     Args:
         name: str
@@ -66,6 +66,7 @@ class GenerateIons(Maker):
                 jobs.append(job_ion)
 
         # Create a job to copy the ion files to the save directory
+        os.makedirs(save_ion_folder, exist_ok=True)
         job_copy: Job = cp_ion(
             outdirs = [job.output for job in jobs],
             ion_dir = save_ion_folder

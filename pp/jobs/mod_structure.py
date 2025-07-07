@@ -16,7 +16,7 @@ def remove_atom(structure:Structure):
 
 @job
 def generate_training_population(
-    structure:Structure,
+    structures: List,
     structures_dir: Union[str, Path],
     supercell_size: Union[List, Tuple] = [1,1,1],
     distance: float = 0.1, 
@@ -30,8 +30,8 @@ def generate_training_population(
 
     Args:
     -----
-    structure: Structure
-        an input pymatgen structure
+    structures: List
+        list of input pymatgen structures
     structures_dir: Union[str, Path]
         folder to save the generated structures
     supercell_size: Union[List, Tuple]
@@ -55,14 +55,13 @@ def generate_training_population(
     """
 
     structures_fname = []
-    structure.make_supercell(supercell_size)
-    j = 0
-    while len(structures_fname) < size:
-        j += 1
-        stru = structure.perturb(distance=distance,min_distance=min_distance)
-        fname = os.path.join(structures_dir,f'{j}.cif')
-        structures_fname.append(fname)
-        stru.to(fname)
+    for i,structure in enumerate(structures):
+        structure.make_supercell(supercell_size)
+        for j in range(int(size/len(structures))*i,int(size/len(structures))*(i+1)):
+            stru = structure.perturb(distance=distance,min_distance=min_distance)
+            fname = os.path.join(structures_dir,f'{j}.cif')
+            structures_fname.append(fname)
+            stru.to(fname)
     
     
     return structures_fname
