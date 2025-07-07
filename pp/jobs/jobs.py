@@ -6,7 +6,7 @@ credits to Alberto Pacini
 
 from dataclasses import field
 from jobflow import job, Flow, Response
-from pp.jobs.labelling import QEstaticLabelling, QEpw2bgwLabelling, QEbandLabelling, qe_params_from_config
+from pp.jobs.labelling import QEstaticLabelling, QEpw2bgwLabelling, QEbandLabelling, QEnscfLabelling, qe_params_from_config
 import numpy as np
 from typing import List, Union, Optional, Dict
 from pp.utils import KPath
@@ -111,8 +111,8 @@ def QEpw2bgw(
 def QEnscf(
     scf_outdir: List[str] | List[dict],
     name: str = 'nscf',
-    bands_run_command : str = 'pw.x -in',
-    fname_bands_template: str | None = None,
+    nscf_run_command : str = 'pw.x -in',
+    fname_nscf_template: str | None = None,
     num_workers: int | None = None
 ):
     """
@@ -132,8 +132,8 @@ def QEnscf(
     
     bands_params = {
         'name': name,
-        'bands_command': bands_run_command,
-        'fname_bands_template': fname_bands_template,
+        'bands_command': nscf_run_command,
+        'fname_nscf_template': fname_nscf_template,
         'scf_outdir': scf_outdir,
         'num_workers': num_workers
     }    
