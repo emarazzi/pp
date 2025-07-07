@@ -6,7 +6,7 @@ from jobflow import Maker, Flow
 class ElectronBS(Maker):
     """
     Maker for generating electron band structure data using Quantum ESPRESSO.
-    """TrKurWKrdw%5rwh@fwXtz&d$9
+    """
     name: str = "ElectronBS"
     qe_run_cmd: str = "mpirun -np 1 pw.x"
     qe_bands_cmd: str = "bands.x"
