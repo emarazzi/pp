@@ -1,4 +1,4 @@
-from pp.jobs.labelling import QEscf, QEband
+from pp.jobs.jobs import QEscf, QEband
 from dataclasses import dataclass, field
 from jobflow import Maker, Flow
 
