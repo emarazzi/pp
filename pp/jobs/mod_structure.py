@@ -16,7 +16,7 @@ def remove_atom(structure:Structure):
 
 @job
 def generate_training_population(
-    structures: List,
+    structure: Structure,
     structures_dir: Union[str, Path],
     supercell_size: Union[List, Tuple] = [1,1,1],
     distance: float = 0.1, 
@@ -55,14 +55,14 @@ def generate_training_population(
     """
 
     structures_fname = []
-    for i,structure in enumerate(structures):
-        structure.make_supercell(supercell_size)
-        for j in range(int(size/len(structures))*i,int(size/len(structures))*(i+1)):
-            stru = structure.perturb(distance=distance,min_distance=min_distance)
-            fname = os.path.join(structures_dir,f'{j}.cif')
-            structures_fname.append(fname)
-            stru.to(fname)
-    
+
+    structure.make_supercell(supercell_size)
+    for j in range(size):
+        stru = structure.perturb(distance=distance,min_distance=min_distance)
+        fname = os.path.join(structures_dir,f'{j}.cif')
+        structures_fname.append(fname)
+        stru.to(fname)
+
     
     return structures_fname
 

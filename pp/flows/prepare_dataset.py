@@ -110,7 +110,7 @@ class GenerateDFTData(Maker):
         
     def make(
         self,
-        structure: Union[Structure, List],
+        structure: Structure,
     ) -> Flow:
         """
         Create the flow to generate the training dataset.
@@ -122,14 +122,12 @@ class GenerateDFTData(Maker):
         Returns:
             A Flow
         """
-        if isinstance(structure,Structure):
-            structure = [structure]
-
+        
         jobs: List[Job] = []
 
         if self.run_generate_population:
             gen_structures_job = generate_training_population(
-            structures = structure,
+            structure = structure,
             structures_dir = self.structures_dir,
             distance = self.distance, 
             supercell_size = self.supercell_size,
