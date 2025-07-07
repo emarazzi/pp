@@ -6,7 +6,7 @@ credits to Alberto Pacini
 
 from dataclasses import field
 from jobflow import job, Flow, Response
-from pp.jobs.labelling import QEstaticLabelling, QEpw2bgwLabelling , QEnscfLabelling, QEbandLabelling, qe_params_from_config
+from pp.jobs.labelling import QEstaticLabelling, QEpw2bgwLabelling, QEbandLabelling, qe_params_from_config
 import numpy as np
 from typing import List, Union, Optional, Dict
 from pp.utils import KPath
