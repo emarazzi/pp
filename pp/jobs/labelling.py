@@ -607,7 +607,7 @@ class QEpw2bgwLabelling(Maker):
 @dataclass
 class QEbandLabelling(Maker):
     """
-    Maker to set up and run Quantum Espresso static calculations for input structures, including bulk, isolated atoms, and dimers.
+    Maker to set up and run Quantum Espresso bands calculations for input structures, including bulk, isolated atoms, and dimers.
     Parameters
     ----------
     name: str
@@ -622,13 +622,12 @@ class QEbandLabelling(Maker):
         Number of workers to use for the calculations. If None, defaults to the number of structures.
     """
 
-    scf_outdir: list[str] | list[dict]
-    name: str = "bands_labelling"
-    bands_run_cmd: str | None = None #String with the command to run QE (including its executable path/or application name)
-    fname_pwi_template: str | None = None #Path to file containing the template computational parameters
-    num_qe_workers: int | None = None #Number of workers to use for the calculations. 
-    kpoints: KPath | None = None
-    
+    name: str = "do_bands_labelling"
+    bands_run_command: str | None = None #String with the command to run QE (including its executable path/or application name)
+    fname_bands_template: str | None = None #Path to file containing the template computational parameters
+    scf_outdir: str | List[str] | None = None #Path or list[Path] to ASE-readible file containing the structures to be computed
+    num_workers: int | None = None
+
     def make(self):
         #Define jobs
         joblist = []
@@ -648,22 +647,21 @@ class QEbandLabelling(Maker):
         else:
             raise ValueError("No scf output paths provided. Please provide path or a list of paths to scf outputs.")
 
-
         # Check pwi template
-        pwi_template_lines = self.check_pwi_template(self.fname_pwi_template)
+        pwi_template_lines = self.read_bands_template(self.fname_pw2bgw_template)
 
         # Write pwi input files for each structure
         work_dir = os.getcwd()
-        path_to_qe_workdir = os.path.join(work_dir, "nscf_files")
+        path_to_qe_workdir = os.path.join(work_dir, "bands_files")
         os.makedirs(path_to_qe_workdir, exist_ok=True)
 
         for i, outdir in enumerate(outdirs):
+
             fname_new_bands = os.path.join(path_to_qe_workdir, f"structure_{i}.pwi")
             self.write_bands(
                 fname_new_bands=fname_new_bands,
-                outdir=outdir,
+                outdir=outdir, 
                 bands_template=pwi_template_lines, 
-                kpoints=self.kpoints
                 )
 
         # Set number of QE workers
@@ -675,7 +673,7 @@ class QEbandLabelling(Maker):
         # Launch QE workers            
         outputs = []
         for id_qe_worker in range(num_qe_workers):
-           qe_worker = self.run_p2b_worker(
+           qe_worker = self.run_bands_worker(
                id=id_qe_worker,
                command=self.bands_run_command,
                work_dir=path_to_qe_workdir
@@ -685,28 +683,27 @@ class QEbandLabelling(Maker):
            joblist.append(qe_worker)
            outputs.append(qe_worker.output) #Contains list of dict{'successes', 'pwo_files', 'outdirs'} for each worker
         qe_wrk_flow = Flow(jobs=joblist, output=outputs)
-
         # Output is a list of success status, one for each worker
         # The success status is a dictionary with the pwo file name as key and the calculation success status as value (True/False)
-        return Response(replace=qe_wrk_flow, output=qe_wrk_flow.output)
+        return Response(replace=qe_wrk_flow, output=outputs)
 
-    def check_pwi_template(self, fname_template):
+    def read_bands_template(self, fname_template):
         """
-        Check the pwi template file for the required parameters.
+        read the template file .
         """
         # Read template file
-        tmp_pwi_lines = []
+        tmp_pw2bgwi_lines = []
         with open(fname_template, 'r') as f:
-            tmp_pwi_lines = f.readlines()
+            tmp_pw2bgwi_lines = f.readlines()            
 
-        return tmp_pwi_lines
+        return tmp_pw2bgwi_lines
+
 
     def write_bands(
             self, 
             fname_new_bands: str,
             outdir: str, 
             bands_template: list[str],
-            kpoints: KPath,
             ):
         """
         Write the pwi input file for the given structure.
@@ -717,20 +714,18 @@ class QEbandLabelling(Maker):
             if 'outdir' in line: i_to_delete = i
 
         if i_to_delete is not None:
-            pw2bgwi_template = bands_template[:i_to_delete] + bands_template[i_to_delete+1:]
+            bands_template = bands_template[:i_to_delete] + bands_template[i_to_delete+1:]
 
 
-        pw2bgwi_template.insert(2,f"   outdir = '{outdir}'\n")
+        bands_template.insert(2,f"   outdir = '{outdir}'\n")
+        bands_template.insert(3,f"   filband = '{outdir}.out'\n")
 
         # Write the modified lines to the new pwi file
         with open(fname_new_bands, 'w') as f:
-            for line in pw2bgwi_template:
+            for line in bands_template:
                 f.write(line)
-        if kpoints:
-            kpoints.print_qe_path(fname_new_bands)
-
     @job
-    def run_qe_worker(
+    def run_bands_worker(
             self, 
             id,
             command,
@@ -743,7 +738,7 @@ class QEbandLabelling(Maker):
         pwi_files = glob(os.path.join(work_dir, "*.pwi"))
 
         #Check pwo does not exist
-        worker_output = {'success' : [], 'output' : [], 'outdir' : []}
+        worker_output = {'success' : [], 'pwo' : []}
         for pwi in pwi_files:
             #Try locking the pwi file
             lock_pwi, pwo_fname = self.lock_input(pwi_fname=pwi, worker_id=id)
@@ -751,19 +746,16 @@ class QEbandLabelling(Maker):
             if lock_pwi == "": continue #Skip to next pwi if lock failed
 
             #Get output directory of this calculation
-            with open(lock_pwi, 'r') as f:
-                pwi_lines = f.readlines()
-            outdir_line = [line.split('=')[1] for line in pwi_lines if 'outdir' in line][0]
-            outdir_line = outdir_line.strip().replace("'", "").replace('"', '')  # Remove quotes
-            outdir = os.getcwd() + f"/{outdir_line}"
-
+            #with open(lock_pwi, 'r') as f:
+            #    pwi_lines = f.readlines()
+            
             #Launch QE calculation
             success = self.run_qe(command=command, fname_pwi=lock_pwi, fname_pwo=pwo_fname)
 
             #Update output
             worker_output['success'].append(success)
-            worker_output['output'].append(pwo_fname)
-            worker_output['outdir'].append(outdir)
+            worker_output['pwo'].append(pwo_fname)
+            
 
         return worker_output
 
@@ -772,7 +764,7 @@ class QEbandLabelling(Maker):
         Run the QE command in a subprocess. Execute one QuantumEspresso calculation on the current input file.
         """
         #Assemble QE command
-        run_cmd = f"{command} < {fname_pwi} >> {fname_pwo}"
+        run_cmd = f"{command} -in {fname_pwi} > {fname_pwo}"
 
         success = False
         try:        
@@ -802,6 +794,3 @@ class QEbandLabelling(Maker):
             pwi_lock_fname = ""  
         
         return pwi_lock_fname, pwo_fname
-@dataclass
-class QEnscfLabelling(Maker):
-    pass

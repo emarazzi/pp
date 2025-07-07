@@ -34,7 +34,7 @@ class KPath:
         weights = self.get_weights()
         weights = np.concatenate((weights,np.array([1])))
         if filename:
-            with open(filename,"w") as file:
+            with open(filename,"a") as file:
                 file.write(f"{len(self.HSPoints)}\n")
                 for w,k in zip(weights,self.HSPoints):
                     file.write(f"{k[0]:.6f}  {k[1]:.6f}  {k[2]:.6f}  {w:.0f}\n")
