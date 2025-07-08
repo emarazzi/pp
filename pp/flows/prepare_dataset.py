@@ -110,7 +110,7 @@ class GenerateDFTData(Maker):
         
     def make(
         self,
-        structure: Optional[Structure],
+        structure: Optional[Structure] = None,
     ) -> Flow:
         """
         Create the flow to generate the training dataset.
