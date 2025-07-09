@@ -50,16 +50,17 @@ def HPROWrapper(
         qe_output_folders = [dir for dir,succ in zip(scf_outdir,success) if succ]
         
     for j,qe_output_folder in enumerate(qe_output_folders):
-        os.makedirs(os.path.join(ao_hamiltonian_dir,str(j)),exist_ok=True)
+        folder_name = qe_output_folder.split('/')[-1]
+        os.makedirs(os.path.join(ao_hamiltonian_dir,folder_name),exist_ok=True)
         hpro_job = ReconstructWrapper(
             qe_folder = qe_output_folder,
             siesta_path = ion_dir,
-            ao_hamiltonian_dir = os.path.join(ao_hamiltonian_dir,str(j)),
+            ao_hamiltonian_dir = os.path.join(ao_hamiltonian_dir,folder_name),
             upf_dir = upf_dir,
             ecutwfn = ecutwfn,
         )
         jobs.append(hpro_job)
-        output['ao_dirs'].append(os.path.join(ao_hamiltonian_dir,str(j)))
+        output['ao_dirs'].append(os.path.join(ao_hamiltonian_dir,folder_name))
     
     flow = Flow(jobs=jobs,output=output)
 
