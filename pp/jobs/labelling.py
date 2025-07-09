@@ -488,7 +488,7 @@ class QEpw2bgwLabelling(Maker):
                work_dir=path_to_qe_workdir
                )
            
-           qe_worker.name = f"run_qe_worker_{id_qe_worker}"
+           qe_worker.name = f"run_p2b_worker_{id_qe_worker}"
            joblist.append(qe_worker)
            outputs.append(qe_worker.output) #Contains list of dict{'successes', 'pwo_files', 'outdirs'} for each worker
         qe_wrk_flow = Flow(jobs=joblist, output=outputs)
@@ -679,7 +679,7 @@ class QEbandLabelling(Maker):
                work_dir=path_to_qe_workdir
                )
            
-           qe_worker.name = f"run_qe_worker_{id_qe_worker}"
+           qe_worker.name = f"run_bands_worker_{id_qe_worker}"
            joblist.append(qe_worker)
            outputs.append(qe_worker.output) #Contains list of dict{'successes', 'pwo_files', 'outdirs'} for each worker
         qe_wrk_flow = Flow(jobs=joblist, output=outputs)
@@ -871,7 +871,7 @@ class QEnscfLabelling(Maker):
                work_dir=path_to_qe_workdir
                )
            
-           qe_worker.name = f"run_qe_worker_{id_qe_worker}"
+           qe_worker.name = f"run_nscf_worker_{id_qe_worker}"
            joblist.append(qe_worker)
            outputs.append(qe_worker.output) #Contains list of dict{'successes', 'pwo_files', 'outdirs'} for each worker
         qe_wrk_flow = Flow(jobs=joblist, output=outputs)
