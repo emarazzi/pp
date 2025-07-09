@@ -42,7 +42,13 @@ def HPROWrapper(
     output = {'ao_dirs':[]}
     jobs = []
     qe_output_folders = np.hstack([output['outdir'] for output in qe_run_output])
-    
+    if np.all([isinstance(out, dict) for out in qe_run_output]):
+        success = np.hstack([out['success'] for out in qe_run_output]).tolist()
+        scf_outdir = np.hstack([out['outdir'] for out in qe_run_output]).tolist()
+        if not np.all(success):
+            print("Not all scf calculation where successful, only the successfull one will be parsed to HPRO.")
+        qe_output_folders = [dir for dir,succ in zip(scf_outdir,success) if succ]
+        
     for j,qe_output_folder in enumerate(qe_output_folders):
         os.makedirs(os.path.join(ao_hamiltonian_dir,str(j)),exist_ok=True)
         hpro_job = ReconstructWrapper(

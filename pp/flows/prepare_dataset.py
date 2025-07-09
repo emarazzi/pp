@@ -94,6 +94,7 @@ class GenerateDFTData(Maker):
     num_qe_workers: Optional[int] = None
     pw2bgw_run_cmd: str = "$PATHQE/bin/pw2bgw.x"
     fname_pw2bgw_template: str = "pw2bgw.in"
+    num_p2b_workers: Optional[int] = None
     ion_dir: Union[str, Path] = './'
 
     def __post_init__(self):
@@ -153,7 +154,7 @@ class GenerateDFTData(Maker):
                   name = 'Pw2Bgw Labelling',
                   pw2bgw_command = self.pw2bgw_run_cmd,
                   fname_pw2bgw_template = self.fname_pw2bgw_template,
-                  num_workers = 1
+                  num_workers = self.num_p2b_workers
             )
             jobs.append(pw2bgw_run_jobs)
 
