@@ -1,8 +1,9 @@
 from HPRO import PW2AOkernel
+from HPRO.lcaodiag import LCAODiagKernel
 from jobflow import job, Flow, Response
 from pathlib import Path
 import os
-from typing import Any, List, Union
+from typing import Any, List, Union, Optional
 import numpy as np
 
 __all__ = [
@@ -84,3 +85,54 @@ def ReconstructWrapper(
         ecutwfn=ecutwfn
     )
     kernel.run_pw2ao_rs(ao_hamiltonian_dir)
+
+
+@job
+def DiagWrapper(    
+    ao_hamiltonian_dir: List,
+    nbnd: int,
+    kpts: List,
+    kptwts: List,
+    kptsymbol: List,
+    efermi: Optional[float] = None
+) -> Flow:
+    output: dict = {'ao_dirs':[]}
+    jobs: List = []
+    for ao_dir in ao_hamiltonian_dir:
+        hpro_job = diag(
+            ao_dir = ao_dir,
+            nbnd = nbnd,
+            kpts = kpts,
+            kptwts = kptwts,
+            kptsymbol = kptsymbol,
+            efermi = efermi
+        )
+        jobs.append(hpro_job)
+        output['ao_dirs'].append(ao_dir)
+    
+    flow = Flow(jobs=jobs,output=output)
+
+    return Response(replace=flow,output=output)
+
+
+@job
+def diag(
+    ao_dir: Union[str, Path],
+    nbnd: int,
+    kpts: List,
+    kptwts: List,
+    kptsymbol: List,
+    efermi: Optional[float] = None
+) -> None:
+    kernel = LCAODiagKernel()
+    kernel.setk(
+        kpts=kpts,
+        kptwts=kptwts,
+        kptsymbol=kptsymbol,
+        )
+
+    kernel.load_deeph_mats(ao_dir)
+    kernel.diag(nbnd=nbnd, efermi=efermi)
+    kernel.write(ao_dir)
+
+
