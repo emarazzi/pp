@@ -39,8 +39,6 @@ def QEband(
     qe_run_cmd: str = "mpirun -np 1 bands.x",
     num_qe_workers: int | None = 1, #Number of workers to use for the calculations. If None setp up 1 worker per scf
     fname_pwi_template: str | None = None, #Path to file containing the template QE input
-    kpath: list | None = None, # high symmetry path
-    ndivsm: int | None = None  # number of points in the shortest high symmetry segment
 ):
     """
     Initialize the QEScfLabelling with the provided parameters.
@@ -56,15 +54,13 @@ def QEband(
         if not np.all(success):
             print("Not all scf calculation where successful, only the successfull one will be used.")
         scf_outdir = [dir for dir,succ in zip(scf_outdir,success) if succ]
-    if kpath and ndivsm:
-        kpoints = KPath(HSPoints=kpath,ndivsm=ndivsm)
+
     qe_params = {
         "name": name,
         "qe_run_cmd": qe_run_cmd,
         "num_qe_workers": num_qe_workers,
         "fname_pwi_template": fname_pwi_template,
         "scf_outdir": scf_outdir,
-        "kpoints": kpoints
     }
 
     output_per_worker = QEbandLabelling(**qe_params).make()
