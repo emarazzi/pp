@@ -161,6 +161,8 @@ class GenerateDFTData(Maker):
             jobs.append(pw2bgw_run_jobs)
 
         if self.run_hpro:
+            if self.ao_hamiltonian_dir != './':
+                os.makedirs(self.ao_hamiltonian_dir,exist_ok=True)
             hpro_job = HPROWrapper(
                   qe_run_output = qe_run_jobs.output if self.run_qe_scf else self.qe_scf_outdir,
                   ion_dir = self.ion_dir,
