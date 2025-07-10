@@ -648,7 +648,7 @@ class QEbandLabelling(Maker):
             raise ValueError("No scf output paths provided. Please provide path or a list of paths to scf outputs.")
 
         # Check pwi template
-        pwi_template_lines = self.read_bands_template(self.fname_pw2bgw_template)
+        pwi_template_lines = self.read_bands_template(self.fname_bands_template)
 
         # Write pwi input files for each structure
         work_dir = os.getcwd()
