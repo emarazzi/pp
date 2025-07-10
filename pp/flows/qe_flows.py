@@ -25,7 +25,7 @@ class ElectronBS(Maker):
     def __post_init__(self):
         if self.run_nscf and self.scf_outdir is None and not self.run_scf:
             raise ValueError("To run the nscf calculation either a scf calculation of the outdirs is needed.")
-        if self.nscf_outdir is None and not self.run_nscf:
+        if self.nscf_outdir is None and not self.run_nscf and not self.nscf_outdir:
             raise ValueError("To run the bands calculation either a nscf calculation of the outdirs is needed.")
 
     def make(self,structure_file: Optional[str] = None) -> Flow:
