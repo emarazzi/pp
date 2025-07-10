@@ -35,27 +35,29 @@ class ElectronBS(Maker):
 
         jobs = []
 
-        # Create the job for static calculation
-        scf_job = QEscf(dict(
-            name="Static Calculation",
-            qe_run_cmd=self.qe_run_cmd,
-            num_qe_workers=self.num_qe_workers,
-            fname_pwi_template=self.fname_scf_template,
-            fname_structures=structure_file,
-            kspace_resolution=self.kspace_resolution,
-            koffset = self.koffset
-        ))
+        if self.run_scf:
+            # Create the job for static calculation
+            scf_job = QEscf(dict(
+                name="Static Calculation",
+                qe_run_cmd=self.qe_run_cmd,
+                num_qe_workers=self.num_qe_workers,
+                fname_pwi_template=self.fname_scf_template,
+                fname_structures=structure_file,
+                kspace_resolution=self.kspace_resolution,
+                koffset = self.koffset
+            ))
 
-        jobs.append(scf_job)
-
-        # Create the job for nscf calculation
-        nscf_job = QEnscf(
-            name="NSCF Calculation",
-            nscf_run_command=self.qe_run_cmd,
-            num_workers=self.num_qe_workers,
-            fname_nscf_template=self.fname_nscf_template,
-            scf_outdir=scf_job.output            
-        )
+            jobs.append(scf_job)
+        
+        if self.run_nscf:
+            # Create the job for nscf calculation
+            nscf_job = QEnscf(
+                name="NSCF Calculation",
+                nscf_run_command=self.qe_run_cmd,
+                num_workers=self.num_qe_workers,
+                fname_nscf_template=self.fname_nscf_template,
+                scf_outdir=scf_job.output if self.run_scf else self.scf_outdir
+            )
 
         jobs.append(nscf_job)
 
@@ -65,7 +67,7 @@ class ElectronBS(Maker):
             qe_run_cmd=self.qe_bands_cmd,
             num_qe_workers=self.num_bands_workers,
             fname_pwi_template=self.fname_bands_template,
-            scf_outdir=nscf_job.output
+            scf_outdir=nscf_job.output if self.run_nscf else self.nscf_outdir
         )
 
         jobs.append(band_job)
