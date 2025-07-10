@@ -137,7 +137,7 @@ def QEnscf(
         'scf_outdir': scf_outdir,
         'num_workers': num_workers
     }    
-    output_per_worker = QEpw2bgwLabelling(**bands_params).make()
+    output_per_worker = QEnscfLabelling(**bands_params).make()
 
     return output_per_worker
 
