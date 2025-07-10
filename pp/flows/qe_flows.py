@@ -59,7 +59,7 @@ class ElectronBS(Maker):
                 scf_outdir=scf_job.output if self.run_scf else self.scf_outdir
             )
 
-        jobs.append(nscf_job)
+            jobs.append(nscf_job)
 
         # Create the job for band structure calculation
         band_job = QEband(
