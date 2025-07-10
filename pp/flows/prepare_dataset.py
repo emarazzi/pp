@@ -127,6 +127,8 @@ class GenerateDFTData(Maker):
         jobs: List[Job] = []
 
         if self.run_generate_population:
+            if self.structures_dir != './':
+                  os.makedirs(self.structures_dir,exist_ok=True)
             gen_structures_job = generate_training_population(
             structure = structure,
             structures_dir = self.structures_dir,
