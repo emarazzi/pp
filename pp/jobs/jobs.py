@@ -59,7 +59,7 @@ def QEband(
         "name": name,
         "bands_run_command": bands_run_command,
         "num_workers": num_qe_workers,
-        "fname_pwi_template": fname_pwi_template,
+        "fname_bands_template": fname_pwi_template,
         "scf_outdir": scf_outdir,
     }
 
