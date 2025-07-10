@@ -36,7 +36,7 @@ def QEscf(
 def QEband(
     scf_outdir: list[str] | list[dict],
     name: str = "Band structure labelling",
-    qe_run_cmd: str = "mpirun -np 1 bands.x",
+    bands_run_command: str = "mpirun -np 1 bands.x",
     num_qe_workers: int | None = 1, #Number of workers to use for the calculations. If None setp up 1 worker per scf
     fname_pwi_template: str | None = None, #Path to file containing the template QE input
 ):
@@ -57,8 +57,8 @@ def QEband(
 
     qe_params = {
         "name": name,
-        "qe_run_cmd": qe_run_cmd,
-        "num_qe_workers": num_qe_workers,
+        "bands_run_command": bands_run_command,
+        "num_workers": num_qe_workers,
         "fname_pwi_template": fname_pwi_template,
         "scf_outdir": scf_outdir,
     }

@@ -64,7 +64,7 @@ class ElectronBS(Maker):
         # Create the job for band structure calculation
         band_job = QEband(
             name="Band Structure Calculation",
-            qe_run_cmd=self.qe_bands_cmd,
+            bands_run_command=self.qe_bands_cmd,
             num_qe_workers=self.num_bands_workers,
             fname_pwi_template=self.fname_bands_template,
             scf_outdir=nscf_job.output if self.run_nscf else self.nscf_outdir
