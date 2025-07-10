@@ -100,12 +100,14 @@ def DiagWrapper(
     output: dict = {'ao_dirs':[]}
     jobs: List = []
     for ao_dir in ao_hamiltonian_dir:
+        name = ao_dir.split('/')[-1]
         hpro_job = diag(
             ao_dir = ao_dir,
             nbnd = nbnd,
             kpts = kpts,
             kptwts = kptwts,
             kptsymbol = kptsymbol,
+            eigfname = f"{name}.dat",
             efermi = efermi
         )
         jobs.append(hpro_job)
@@ -123,6 +125,7 @@ def diag(
     kpts: List,
     kptwts: List,
     kptsymbol: List,
+    eigfname: str = 'eig.dat',
     efermi: Optional[float] = None
 ) -> None:
     kernel = LCAODiagKernel()
@@ -134,7 +137,7 @@ def diag(
 
     kernel.load_deeph_mats(ao_dir)
     kernel.diag(nbnd=nbnd, efermi=efermi)
-    kernel.write(ao_dir)
+    kernel.write(ao_dir,eigfname=eigfname)
     structure = load_structure(path=ao_dir,interface='deeph')
     save_pymatgen_structure(structure,os.path.join(ao_dir,'structure.cif'))
 
