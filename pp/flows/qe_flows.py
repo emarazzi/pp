@@ -1,7 +1,7 @@
 from pp.jobs.jobs import QEscf, QEband, QEnscf
 from dataclasses import dataclass, field
 from jobflow import Maker, Flow
-from typing import List
+from typing import List, Optional
 @dataclass
 class ElectronBS(Maker):
     """
@@ -28,7 +28,7 @@ class ElectronBS(Maker):
         if self.nscf_outdir is None and not self.run_nscf:
             raise ValueError("To run the bands calculation either a nscf calculation of the outdirs is needed.")
 
-    def make(self,structure_file: str) -> Flow:
+    def make(self,structure_file: Optional[str] = None) -> Flow:
         """
         Create the flow to generate electron band structure data.
         """
