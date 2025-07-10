@@ -24,3 +24,9 @@ def shift_cbm(bands: Union[List, ndarray],fermie: float) -> ndarray:
     bottom_cb = np.min(bands[bands>fermie])
     bands -= bottom_cb
     return bands
+
+def get_bandgap(bands:Union[List, ndarray],fermie: float):
+    bands = np.array(bands)
+    top_vb = np.max(bands[bands<fermie])
+    bottom_cb = np.min(bands[bands>fermie])
+    return np.abs(bottom_cb-top_vb)

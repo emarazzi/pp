@@ -1,5 +1,6 @@
 from HPRO import PW2AOkernel
 from HPRO.lcaodiag import LCAODiagKernel
+from HPRO.structure import load_structure, save_pymatgen_structure
 from jobflow import job, Flow, Response
 from pathlib import Path
 import os
@@ -134,5 +135,7 @@ def diag(
     kernel.load_deeph_mats(ao_dir)
     kernel.diag(nbnd=nbnd, efermi=efermi)
     kernel.write(ao_dir)
+    structure = load_structure(path=ao_dir,interface='deeph')
+    save_pymatgen_structure(structure,os.path.join(ao_dir,'structure.cif'))
 
 
