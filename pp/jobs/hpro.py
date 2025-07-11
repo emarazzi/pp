@@ -113,7 +113,7 @@ def DiagWrapper(
         jobs.append(hpro_job)
         output['ao_dirs'].append(ao_dir)
         structure = load_structure(path=ao_dir,interface='deeph')
-        save_pymatgen_structure(structure,os.path.join(ao_dir,'structure.cif'))
+        save_pymatgen_structure(structure,os.path.join(ao_dir,'{name}.cif'))
     
     flow = Flow(jobs=jobs,output=output)
 
@@ -141,6 +141,6 @@ def diag(
     kernel.diag(nbnd=nbnd, efermi=efermi)
     kernel.write(ao_dir,eigfname=eigfname)
     structure = load_structure(path=ao_dir,interface='deeph')
-    save_pymatgen_structure(structure,os.path.join(ao_dir,'structure.cif'))
+    save_pymatgen_structure(structure,os.path.join(ao_dir,'{name}.cif'))
 
 

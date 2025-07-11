@@ -39,6 +39,7 @@ def QEband(
     bands_run_command: str = "mpirun -np 1 bands.x",
     num_qe_workers: int | None = 1, #Number of workers to use for the calculations. If None setp up 1 worker per scf
     fname_pwi_template: str | None = None, #Path to file containing the template QE input
+    meta: dict | None = None
 ):
     """
     Initialize the QEScfLabelling with the provided parameters.
