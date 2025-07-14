@@ -79,8 +79,8 @@ class GenerateDFTData(Maker):
                                                # and VSC file if only HPRO is run
     structures_dir: Union[str, Path] = './'
     ao_hamiltonian_dir: Union[str, Path] = './'
-    distance: float = 0.1
-    min_distance: Optional[float] = 0.001
+    distance: float = 0.02
+    min_distance: Optional[float] = 0.0001
     supercell_size: Union[List[int], Tuple[int, ...]] = field(default_factory=lambda: [1, 1, 1])
     training_size: int = 500
     include_vacancies: bool = False
