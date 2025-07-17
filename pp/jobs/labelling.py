@@ -13,11 +13,12 @@ from dataclasses import dataclass, field
 from itertools import combinations_with_replacement
 import numpy as np
 from pp.utils import KPath
-
+import re
 from ase import Atoms
-from ase.io import read, write
+from ase.io import read
 from jobflow import job, Flow, Maker, Response
 from typing import List
+
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 def qe_params_from_config(config: dict):
@@ -819,6 +820,8 @@ class QEnscfLabelling(Maker):
     fname_nscf_template: str | None = None #Path to file containing the template computational parameters
     scf_outdir: str | List[str] | None = None #Path or list[Path] to ASE-readible file containing the structures to be computed
     num_workers: int | None = None
+    hs_path: List | None = None
+    ndivsm: int | None = None
 
     def make(self):
         #Define jobs
@@ -886,7 +889,7 @@ class QEnscfLabelling(Maker):
         # Read template file
         tmp_nscf_lines = []
         with open(fname_template, 'r') as f:
-            tmp_nscf_lines = f.readlines()            
+            tmp_nscf_lines = f.readlines()
 
         return tmp_nscf_lines
 
@@ -896,6 +899,8 @@ class QEnscfLabelling(Maker):
             fname_new_nscf: str,
             outdir: str, 
             nscf_template: list[str],
+            hs_path: List | None = None,
+            ndivsm: int | None = None
             ):
         """
         Write the pwi input file for the given structure.
@@ -907,7 +912,18 @@ class QEnscfLabelling(Maker):
 
         if i_to_delete is not None:
             nscf_template = nscf_template[:i_to_delete] + nscf_template[i_to_delete+1:]
-
+        if hs_path is not None and ndivsm is not None:
+            ii = re.compile(r'\d+')
+            idx = 0
+            for i,line in enumerate(nscf_template):
+                if 'K_POINTS' in line:
+                    idx = i
+                    break
+            if idx > 0:
+                nkpt = int(ii.findall(nscf_template[idx+1])[0])
+                nscf_template = nscf_template[:idx] + nscf_template[idx+nkpt+2:]
+            kpoints = KPath(HSPoints=hs_path, ndivsm=ndivsm)
+            nscf_template += ['K_POINTS crystal_b\n'] + kpoints.list_qe_format()
 
         nscf_template.insert(2,f"   outdir = '{outdir}'\n")
 

@@ -53,6 +53,13 @@ class KPath:
             for i,w in enumerate(weights):
                 print(f"{w:.0f}  {self.HSPoints[i][0]:.6f}  {self.HSPoints[i][1]:.6f}  {self.HSPoints[i][2]:.6f}\
    {self.HSPoints[i+1][0]:.6f}  {self.HSPoints[i+1][1]:.6f}  {self.HSPoints[i+1][2]:.6f}")
+    def list_qe_format(self):
+        weights = self.get_weights()
+        weights = np.concatenate((weights,np.array([1])))
+        output = [f'{len(self.HSPoints)}\n']
+        for w,k in zip(weights,self.HSPoints):
+            output.append(f'{k[0]:.6f}  {k[1]:.6f}  {k[2]:.6f}  {w:.0f}\n')
+        return output
 
 
 def read_eig_hpro(filename: str):

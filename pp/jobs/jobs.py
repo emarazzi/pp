@@ -110,7 +110,9 @@ def QEnscf(
     name: str = 'nscf',
     nscf_run_command : str = 'pw.x -in',
     fname_nscf_template: str | None = None,
-    num_workers: int | None = None
+    num_workers: int | None = None,
+    hs_path: List | None = None,
+    ndivsm: int | None = None
 ):
     """
     Initialize the QEpw2bgwLabelling with the provided parameters.
@@ -132,7 +134,9 @@ def QEnscf(
         'nscf_run_command': nscf_run_command,
         'fname_nscf_template': fname_nscf_template,
         'scf_outdir': scf_outdir,
-        'num_workers': num_workers
+        'num_workers': num_workers,
+        'hs_path': hs_path,
+        'ndivsm': ndivsm
     }    
     output_per_worker = QEnscfLabelling(**bands_params).make()
 
