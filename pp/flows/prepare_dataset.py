@@ -118,7 +118,7 @@ class GenerateDFTData(Maker):
 
         Args:
             structure: Structure
-                     The input structure
+                The input structure
 
         Returns:
             A Flow
