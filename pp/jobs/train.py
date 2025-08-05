@@ -1,0 +1,161 @@
+from jobflow import job
+from typing import Optional, Union, Any
+from pathlib import Path
+import os
+import subprocess
+
+
+default_train_ini = dict(
+    basic = dict(
+        device = 'cpu',
+        dtype = 'float',
+        save_dir = '',
+        additional_folder_name = '',
+        simplified_output = 'True',
+        seed = '42',
+        checkpoint_dir = '',
+        use_new_hypp = 'True'
+    ),
+    
+    data = dict(
+        graph_dir = '',
+        DFT_data_dir =  '',
+        processed_data_dir =  '',
+        save_graph_dir =  '',
+        target_data = 'hamiltonian',
+        dataset_name =  '',
+        get_overlap = 'False'
+    ),
+
+    train = dict(
+        num_epoch = '3000',
+        batch_size = '1',
+        extra_validation = '[]',
+        extra_val_test_only = 'True',
+
+        train_ratio = '0.67',
+        val_ratio = '0.33',
+        test_ratio = '0',
+
+        train_size = '-1',
+        val_size = '-1',
+        test_size = '-1',
+
+        min_lr = '3e-5'
+    ),
+
+    hyperparameters = dict(
+        learning_rate = '0.002',
+        Adam_betas = '(0.9, 0.999)',
+
+        scheduler_type = '1',
+        scheduler_params = '(factor=0.5, cooldown=40, patience=120, threshold=0.05, verbose=True)',
+
+        revert_decay_patience = '20',
+        revert_decay_rate = '0.8'
+    ),
+
+    target = dict(
+        target = 'hamiltonian',
+        target_blocks_type = 'all',
+        target_blocks = '',
+        selected_element_pairs =  '',
+        convert_net_out = 'False'
+    ),
+
+    network = dict(
+        cutoff_radius = '7.2',
+        only_ij = 'False',
+        spherical_harmonics_lmax = '4',
+        spherical_basis_irreps = '',
+        irreps_embed = '64x0e',
+        irreps_mid = '64x0e+32x1o+16x2e+8x3o+8x4e',
+        num_blocks = '3',
+        ignore_parity = 'False',
+        irreps_embed_node =  '',
+        irreps_edge_init =   '',
+        irreps_mid_node =    '',
+        irreps_post_node =  '',
+        irreps_out_node =  '',
+        irreps_mid_edge =  '',
+        irreps_post_edge =  '',
+        out_irreps =  ''
+    )
+)
+
+
+
+
+def write_train_ini(
+    update_default_training_kwargs: dict[str,str],
+    save_dir: Optional[Union[str, Path]] = None
+    ):
+    """
+    Run the training.
+    The configuration is done via a training ini script which defaults are defined in the 
+    default_train_ini dictionary above, that you must update
+
+    Args:
+    ----
+    save_dir: 
+        dir to save the train.ini file and all the training data if not otherwise 
+        specified in the  update_default_training_kwargs 
+    update_default_training_kwargs: dict
+        dictionary to update the defaults in training ini file. 
+        You must provide:
+            graph_dir to load an existing graph or 
+            processed_data_dir to read hpro output and create a graph
+
+    """
+    update_keys = update_default_training_kwargs.keys()
+    if save_dir is None:
+        save_dir = update_default_training_kwargs.get('save_dir')
+        if save_dir is None:
+            raise ValueError("save_dir must be provided either as an argument or in update_default_training_kwargs.")
+        os.makedirs(save_dir,exist_ok=True)
+    elif save_dir is not None:
+        os.makedirs(save_dir,exist_ok=True)
+        if 'save_dir' not in update_keys:
+            update_default_training_kwargs['save_dir'] = str(save_dir)
+    if 'processed_data_dir' in update_keys and 'save_graph_dir' not in update_keys:
+        os.makedirs(f"{save_dir}/graph",exist_ok=True)
+        update_default_training_kwargs['save_graph_dir'] = f"{save_dir}/graph"
+    if 'dataset_name' not in update_keys and 'graph_dir' not in update_keys:
+        update_default_training_kwargs['dataset_name'] = 'DataSet'
+
+    total_dict = {}
+    for section,values in default_train_ini.items():
+        total_dict[section] = dict()
+        for key,value in values.items():
+            total_dict[section][key] = update_default_training_kwargs[key] if key in update_default_training_kwargs.keys() else value
+
+    with open(f"{save_dir}/train.ini", 'w') as file:
+        for section, values in total_dict.items():
+            file.write(f'[{section}]\n')
+            for key, value in values.items():
+                file.write(f'{key} = {value}\n')
+    return f"{save_dir}/train.ini"
+
+
+@job
+def run_training(
+    train_ini: str,
+    training_python_script: str,
+    options: Optional[str]= None,
+    prev_deps: Optional[Any] = None
+    ):
+    run_cmd = f"{training_python_script} {train_ini} {options}"
+    success = False
+    try:        
+        # Launch training and wait till ending
+        subprocess.run(run_cmd, shell=True, check=True, executable="/bin/bash")
+        
+        success = True
+    
+    except subprocess.CalledProcessError as e:
+        
+        success = False
+
+    return success
+
+    

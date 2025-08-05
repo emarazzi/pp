@@ -3,93 +3,80 @@ from pp.jobs.jobs import QEscf, QEband, QEnscf
 from dataclasses import dataclass, field
 from jobflow import Maker, Flow
 from typing import List, Optional
+
+@dataclass
+class ScfSettings:
+    qe_run_cmd: str = "mpirun -np 1 pw.x"
+    num_qe_workers: Optional[int] = None
+    fname_scf_template: Optional[str] = None
+    kspace_resolution: Optional[float] = None
+    koffset: List[bool] = field(default_factory=lambda: [False, False, False])
+
+@dataclass
+class NscfSettings:
+    qe_run_cmd: str = "mpirun -np 1 pw.x"
+    num_qe_workers: Optional[int] = None
+    fname_nscf_template: Optional[str] = None
+    scf_outdir: Optional[List[dict]] = None
+
+@dataclass
+class BandsSettings:
+    qe_bands_cmd: str = "bands.x"
+    num_bands_workers: Optional[int] = None
+    fname_bands_template: Optional[str] = None
+    scf_outdir: Optional[List[dict]] = None
+
 @dataclass
 class ElectronBS(Maker):
     """
     Maker for generating electron band structure data using Quantum ESPRESSO.
-
-    Args:
-    -----
-        name: str
-            Name of the Flow
-        qe_run_cmd: str
-            Command to execute pw.x
-        qe_bands_cmd: str
-            Command to execute bands.x
-        num_qe_workers: Optional[int] = None
-            Number of workers to execute pw.x calculations.
-            Default to None that corresponds to one worker per structure
-        num_bands_workers: Optional[int] = None
-            Number of workers to execute bands.x calculations.
-            Default to None that corresponds to one worker per structure
-        fname_scf_template: str
-            Path to the template for pw scf calculations
-        fname_nscf_template: str
-            Path to the template for pw nscf calculations
-        fname_bands_template: str
-            Path to the template for bands calculations
-        kspace_resolution: Optional[float] = None
-            K-space resolution for the scf calculations in Angostrom^-1.
-        koffset: list[bool] = field(default_factory=lambda: [False, False, False])
-            K-point offset for the scf calculations.
-        scf_outdir: List[dict] | None = None
-            Output of a scf calculation if that is skipped in the present run
-            It should be of the form:
-            [{"outdir":["/path/to/outdir/1","/path/to/outdir/2,.."],"success":[True, True, False,...]},...]
-        run_scf: bool = True
-            Whether to run the scf calculation. Default True, if False, provide scf_outdir
-        run_nscf: bool = True
-            Whether to run the scf calculation. Default True, if False, provide scf_outdir with both scf and nscf outputs
     """
     name: str = "ElectronBS"
-    qe_run_cmd: str = "mpirun -np 1 pw.x"
-    qe_bands_cmd: str = "bands.x"
-    num_qe_workers: int | None = None
-    num_bands_workers: int | None = None
-    fname_scf_template: str | None = None
-    fname_nscf_template: str | None = None
-    fname_bands_template: str | None = None
-    kspace_resolution: float | None = None 
-    koffset: list[bool] = field(default_factory=lambda: [False, False, False]) 
-    scf_outdir: List[dict] | None = None
-    run_scf: bool = True
-    run_nscf: bool = True
+    scf_settings: ScfSettings = field(default_factory=ScfSettings)
+    nscf_settings: NscfSettings = field(default_factory=NscfSettings)
+    bands_settings: BandsSettings = field(default_factory=BandsSettings)
 
     def __post_init__(self):
-        if self.run_nscf and not (self.scf_outdir is not None or self.run_scf):
-            raise ValueError("To run the nscf calculation either a scf calculation of the outdirs is needed.")
-        if self.scf_outdir is None and not self.run_nscf:
-            raise ValueError("To run the bands calculation either a nscf calculation of the outdirs is needed.")
+        if self.nscf_settings and not (self.nscf_settings.scf_outdir or self.scf_settings):
+            raise ValueError("To run NSCF, provide SCF output or enable SCF calculation.")
+        if not self.nscf_settings and self.bands_settings.scf_outdir is None:
+            raise ValueError("To run bands calculation, provide NSCF or SCF output.")
 
-    def make(self,structure_file: Optional[str] = None) -> Flow:
+    def make(self, structure_file: Optional[str] = None) -> Flow:
         """
         Create the flow to generate electron band structure data.
+
+        Args:
+            structure_file (Optional[str]): Path to the structure file
+
+        Returns:
+            Flow: A JobFlow Flow for band structure computation
         """
 
         jobs = []
 
-        if self.run_scf:
+        if self.scf_settings:
             # Create the job for static calculation
             scf_job = QEscf(dict(
                 name="Static Calculation",
-                qe_run_cmd=self.qe_run_cmd,
-                num_qe_workers=self.num_qe_workers,
-                fname_pwi_template=self.fname_scf_template,
+                qe_run_cmd=self.scf_settings.qe_run_cmd,
+                num_qe_workers=self.scf_settings.num_qe_workers,
+                fname_pwi_template=self.scf_settings.fname_scf_template,
                 fname_structures=structure_file,
-                kspace_resolution=self.kspace_resolution,
-                koffset = self.koffset
+                kspace_resolution=self.scf_settings.kspace_resolution,
+                koffset = self.scf_settings.koffset
             ))
 
             jobs.append(scf_job)
         
-        if self.run_nscf:
+        if self.nscf_settings:
             # Create the job for nscf calculation
             nscf_job = QEnscf(
                 name="NSCF Calculation",
-                nscf_run_command=self.qe_run_cmd,
-                num_workers=self.num_qe_workers,
-                fname_nscf_template=self.fname_nscf_template,
-                scf_outdir=scf_job.output if self.run_scf else self.scf_outdir
+                nscf_run_command=self.nscf_settings.qe_run_cmd,
+                num_workers=self.nscf_settings.num_qe_workers,
+                fname_nscf_template=self.nscf_settings.fname_nscf_template,
+                scf_outdir=scf_job.output if self.scf_settings else self.nscf_settings.scf_outdir
             )
 
             jobs.append(nscf_job)
@@ -97,11 +84,11 @@ class ElectronBS(Maker):
         # Create the job for band structure calculation
         band_job = QEband(
             name="Band Structure Calculation",
-            bands_run_command=self.qe_bands_cmd,
-            num_qe_workers=self.num_bands_workers,
-            fname_pwi_template=self.fname_bands_template,
-            scf_outdir=scf_job.output if self.run_scf else self.scf_outdir,
-            meta = {"dependency": nscf_job.output if self.run_nscf else None}
+            bands_run_command=self.bands_settings.qe_bands_cmd,
+            num_qe_workers=self.bands_settings.num_bands_workers,
+            fname_pwi_template=self.bands_settings.fname_bands_template,
+            scf_outdir=scf_job.output if self.run_scf else self.bands_settings.scf_outdir,
+            meta = {"dependency": nscf_job.output if self.nscf_settings else None}
         )
 
         jobs.append(band_job)
