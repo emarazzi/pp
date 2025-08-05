@@ -49,7 +49,6 @@ def HPROWrapper(
     
     output:dict = {'ao_dirs':[]}
     jobs: List[Job] = []
-    qe_output_folders = np.hstack([output['outdir'] for output in qe_run_output])
     if np.all([isinstance(out, dict) for out in qe_run_output]):
         success = np.hstack([out['success'] for out in qe_run_output]).tolist()
         scf_outdir = np.hstack([out['outdir'] for out in qe_run_output]).tolist()
