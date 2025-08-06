@@ -91,7 +91,7 @@ class ElectronBS(Maker):
             bands_run_command=self.bands_settings.qe_bands_cmd,
             num_qe_workers=self.bands_settings.num_bands_workers,
             fname_pwi_template=self.bands_settings.fname_bands_template,
-            scf_outdir=scf_job.output if self.run_scf else self.bands_settings.scf_outdir,
+            scf_outdir=scf_job.output if self.scf_settings else self.bands_settings.scf_outdir,
             meta = {"dependency": nscf_job.output if self.nscf_settings else None}
         )
 
