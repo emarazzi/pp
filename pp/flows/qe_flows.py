@@ -18,6 +18,8 @@ class NscfSettings:
     num_qe_workers: Optional[int] = None
     fname_nscf_template: Optional[str] = None
     scf_outdir: Optional[List[dict]] = None
+    hs_path: Optional[List] = None
+    ndivsm: Optional[int] = None
 
 @dataclass
 class BandsSettings:
@@ -76,6 +78,8 @@ class ElectronBS(Maker):
                 nscf_run_command=self.nscf_settings.qe_run_cmd,
                 num_workers=self.nscf_settings.num_qe_workers,
                 fname_nscf_template=self.nscf_settings.fname_nscf_template,
+                hs_path=self.nscf_settings.hs_path,
+                ndivsm=self.nscf_settings.ndivsm,
                 scf_outdir=scf_job.output if self.scf_settings else self.nscf_settings.scf_outdir
             )
 
