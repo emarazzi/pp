@@ -30,3 +30,18 @@ def get_bandgap(bands:Union[List, ndarray],fermie: float) -> float:
     top_vb = np.max(bands[bands<fermie])
     bottom_cb = np.min(bands[bands>fermie])
     return np.abs(bottom_cb-top_vb)
+
+def fd(e, fermie, nu, sigma):
+    return 1/(np.exp((e-fermie-nu)/sigma)+1)
+
+def fdtilde(ref, new, fermie, nu, sigma):
+    return np.sqrt(fd(ref,fermie,nu,sigma)*fd(new,fermie,nu,sigma))
+
+def band_distance(ref, new, fermie, nu, sigma):
+    if ref.shape[1] != new.shape[1]:
+        raise RuntimeError("bands with different numbers of k points!")
+    eta = 0
+    for i in range(min(ref.shape[0],new.shape[0])):
+       fdtilde_i = fdtilde(ref[i],new[i],fermie,nu,sigma)
+       eta += np.sqrt(np.sum(fdtilde_i*(ref[i]-new[i])**2)/np.sum(fdtilde_i))
+    return eta

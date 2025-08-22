@@ -75,7 +75,7 @@ def read_eig_hpro(filename: str):
         if len(nn) == 3:
             bands[int(line.split()[1])-1].append(float(line.split()[2]))
     file.close()
-    return bands
+    return np.array(bands)
 
 def write_dh_structure(structure:Structure, save_dir: str = './'):
     with open(os.path.join(save_dir,'element.dat'),'w') as file:
