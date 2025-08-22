@@ -67,7 +67,7 @@ def HPROWrapper(
             ecutwfn = ecutwfn,
         )
         jobs.append(hpro_job)
-        outputs['ao_dirs'].append(os.path.join(ao_hamiltonian_dir,folder_name))
+        outputs['ao_dirs'].append(hpro_job.output)
     
     flow = Flow(jobs=jobs,output=outputs)
 
@@ -110,6 +110,7 @@ def ReconstructWrapper(
     )
     kernel.run_pw2ao_rs(ao_hamiltonian_dir)
 
+    return ao_hamiltonian_dir
 
 @job
 def DiagWrapper(    
