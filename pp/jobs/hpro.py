@@ -47,7 +47,7 @@ def HPROWrapper(
         Flow with the HPRO jobs    
     """
     
-    output:dict = {'ao_dirs':[]}
+    outputs:dict = {'ao_dirs':[]}
     jobs: List[Job] = []
     if np.all([isinstance(out, dict) for out in qe_run_output]):
         success = np.hstack([out['success'] for out in qe_run_output]).tolist()
@@ -67,9 +67,9 @@ def HPROWrapper(
             ecutwfn = ecutwfn,
         )
         jobs.append(hpro_job)
-        output['ao_dirs'].append(os.path.join(ao_hamiltonian_dir,folder_name))
+        outputs['ao_dirs'].append(os.path.join(ao_hamiltonian_dir,folder_name))
     
-    flow = Flow(jobs=jobs,output=output)
+    flow = Flow(jobs=jobs,output=outputs)
 
     return Response(replace=flow,output=flow.output)
 
