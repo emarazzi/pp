@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from shutil import copy
 import re
-
+from jobflow import job
 
 def generate_training_population(
     structure: Structure,
