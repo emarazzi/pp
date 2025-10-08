@@ -4,11 +4,74 @@ import numpy as np
 from typing import List
 import os
 import json
-from jobflow import job
 from pathlib import Path
 from shutil import copy
 import re
-from glob import glob
+
+
+def generate_training_population(
+    structure: Structure,
+    structures_dir: str,
+    supercell_size: List[int] = [1, 1, 1],
+    distance: float = 0.1,
+    min_distance: float | None = None,
+    size: int = 200,
+) -> List[str]:
+    """
+    Generate a set of perturbed structures starting from a reference Pymatgen Structure.
+
+    This function takes an input Pymatgen Structure, expands it into a supercell,
+    and generates multiple perturbed copies by randomly displacing atomic positions.
+    Each perturbed structure is written to disk as a CIF file in the specified directory.
+
+    Parameters
+    ----------
+    structure : pymatgen.core.Structure
+        The input structure to use as a reference. This object will not be modified.
+    structures_dir : str
+        Path to the directory where generated CIF files will be saved.
+        The directory will be created if it does not exist.
+    supercell_size : List[int], optional
+        Supercell expansion factors along each lattice vector, e.g. [2, 2, 2].
+        Default is [1, 1, 1].
+    distance : float, optional
+        Maximum displacement magnitude (in Å) applied to atomic positions
+        during perturbation. Default is 0.1 Å.
+    min_distance : float, optional
+        Minimum displacement magnitude (in Å) applied to atomic positions
+        during perturbation. Default is None, i.e. everything is perturb by same amount.
+    size : int, optional
+        Number of perturbed structures to generate. Default is 200.
+
+    Returns
+    -------
+    List[str]
+        List of full file paths (CIF format) corresponding to the generated perturbed structures.
+
+    """
+    # Ensure output directory exists
+    os.makedirs(structures_dir, exist_ok=True)
+
+    # Create a supercell reference structure
+    base_structure = structure.copy()
+    base_structure.make_supercell(supercell_size)
+
+    structures_fname: List[str] = []
+
+    for j in range(size):
+        # Work with a fresh copy each time to avoid cumulative perturbations
+        perturbed = base_structure.copy()
+        perturbed.perturb(distance=distance, min_distance=min_distance)
+
+        fname = os.path.join(structures_dir, f"{j}.cif")
+        perturbed.to( filename=fname)
+        structures_fname.append(fname)
+
+        # Free memory from perturbed structure explicitly (optional for large loops)
+        del perturbed
+
+    return structures_fname
+
 
 def standard_primitive(file_in,file_out=None):
     structure = Structure.from_file(file_in)
