@@ -58,13 +58,18 @@ def generate_training_population(
 
     structures_fname: List[str] = []
 
-    for j in range(size):
+    fname = os.path.join(structures_dir, "0.cif")
+    base_structure.to(fmt="cif", filename=fname)
+    structures_fname.append(fname)
+
+
+    for j in range(1,size):
         # Work with a fresh copy each time to avoid cumulative perturbations
         perturbed = base_structure.copy()
         perturbed.perturb(distance=distance, min_distance=min_distance)
 
         fname = os.path.join(structures_dir, f"{j}.cif")
-        perturbed.to( filename=fname)
+        perturbed.to(filename=fname)
         structures_fname.append(fname)
 
         # Free memory from perturbed structure explicitly (optional for large loops)
