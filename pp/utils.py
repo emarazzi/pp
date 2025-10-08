@@ -22,44 +22,56 @@ def standard_primitive(file_in,file_out=None):
 
 
 class KPath:
-    def __init__(self,HSPoints: List,ndivsm:int=10):
-        self.HSPoints = HSPoints
+    def __init__(self, HSPoints: List, avecs: np.ndarray, ndivsm: int = 10):
+        """
+        HSPoints : list of fractional coordinates of high-symmetry points
+        avecs    : 3x3 array of real-space lattice vectors as rows (in Å)
+        ndivsm   : number of divisions for the shortest segment (QE style)
+        """
+        self.HSPoints = np.array(HSPoints)
+        self.avecs = np.array(avecs)
         self.ndivsm = ndivsm
-    def get_weights(self):
-        dist = np.array([np.linalg.norm(np.array(self.HSPoints[i])-np.array(self.HSPoints[i+1])) for i in range(len(self.HSPoints)-1)])
-        mindist = min(dist)
-        weights = dist / mindist * self.ndivsm
-        return weights
-    def print_qe_path(self,filename: str | None = None):
-        weights = self.get_weights()
-        weights = np.concatenate((weights,np.array([1])))
+
+        # Compute reciprocal lattice vectors: b_i = 2π (A^{-1})^T
+        self.bvecs = 2 * np.pi * np.linalg.inv(self.avecs).T
+
+    def get_divisions(self):
+        """
+        Compute the number of divisions per segment
+        so that the shortest segment has ndivsm divisions.
+        """
+        seglen = []
+        for i in range(len(self.HSPoints) - 1):
+            df = self.HSPoints[i+1] - self.HSPoints[i]
+            dk = df @ self.bvecs  # convert to reciprocal-space Cartesian coords
+            seglen.append(np.linalg.norm(dk))
+        seglen = np.array(seglen)
+
+        minlen = np.min(seglen)
+        divisions = seglen / minlen * self.ndivsm
+        divisions = np.rint(divisions).astype(int)
+        return divisions
+
+    def print_qe_path(self, filename: str | None = None):
+        """
+        Print the QE-style path file section:
+        number of points
+        followed by kx ky kz ndiv
+        """
+        divisions = self.get_divisions()
+        divisions = np.concatenate((divisions, [1]))  # QE convention
+
+        lines = [f"{len(self.HSPoints)}"]
+        for k, d in zip(self.HSPoints, divisions):
+            lines.append(f"{k[0]:.6f}  {k[1]:.6f}  {k[2]:.6f}  {d}")
+
+        text = "\n".join(lines)
+
         if filename:
-            with open(filename,"a") as file:
-                file.write(f"{len(self.HSPoints)}\n")
-                for w,k in zip(weights,self.HSPoints):
-                    file.write(f"{k[0]:.6f}  {k[1]:.6f}  {k[2]:.6f}  {w:.0f}\n")
+            with open(filename, "a") as f:
+                f.write(text + "\n")
         else:
-            print(f"{len(self.HSPoints)}")
-            for w,k in zip(weights,self.HSPoints):
-                print(f"{k[0]:.6f}  {k[1]:.6f}  {k[2]:.6f}  {w:.0f}")
-    def print_openmx_path(self,filename:str=None):
-        weights = self.get_weights()
-        if filename:
-            with open(filename,"w") as file:
-                for i,w in enumerate(weights):
-                    file.write(f"{w:.0f}  {self.HSPoints[i][0]:.6f}  {self.HSPoints[i][1]:.6f}  {self.HSPoints[i][2]:.6f}\
-   {self.HSPoints[i+1][0]:.6f}  {self.HSPoints[i+1][1]:.6f}  {self.HSPoints[i+1][2]:.6f}\n")
-        else:
-            for i,w in enumerate(weights):
-                print(f"{w:.0f}  {self.HSPoints[i][0]:.6f}  {self.HSPoints[i][1]:.6f}  {self.HSPoints[i][2]:.6f}\
-   {self.HSPoints[i+1][0]:.6f}  {self.HSPoints[i+1][1]:.6f}  {self.HSPoints[i+1][2]:.6f}")
-    def list_qe_format(self):
-        weights = self.get_weights()
-        weights = np.concatenate((weights,np.array([1])))
-        output = [f'{len(self.HSPoints)}\n']
-        for w,k in zip(weights,self.HSPoints):
-            output.append(f'{k[0]:.6f}  {k[1]:.6f}  {k[2]:.6f}  {w:.0f}\n')
-        return output
+            print(text)
 
 
 def read_eig_hpro(filename: str):
@@ -70,12 +82,15 @@ def read_eig_hpro(filename: str):
     lines = file.readlines()
     nbnd = int(lines[2].split()[1])
     bands = [[] for _ in range(nbnd)]
+    max_ov = 0
     for line in lines[3:]:
         nn = line.split()
         if len(nn) == 3:
             bands[int(line.split()[1])-1].append(float(line.split()[2]))
+        elif len(nn) == 2:
+            max_ov = np.max([max_ov,int(nn[1][0])])
     file.close()
-    return np.array(bands)
+    return np.array(bands[max_ov:])
 
 def write_dh_structure(structure:Structure, save_dir: str = './'):
     with open(os.path.join(save_dir,'element.dat'),'w') as file:
