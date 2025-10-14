@@ -9,6 +9,10 @@ from shutil import copy
 import re
 from jobflow import job
 
+
+bohr2angstrom = 0.529177249
+
+
 def generate_training_population(
     structure: Structure,
     structures_dir: str,
