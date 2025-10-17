@@ -2,7 +2,6 @@ from pymatgen.core import Structure
 from dataclasses import dataclass, field
 from jobflow import Maker, job, Flow, Job
 from pathlib import Path
-from pp.jobs.mod_structure import generate_training_population
 from pp.jobs.jobs import QEscf, QEpw2bgw
 from pp.jobs.hpro import HPROWrapper
 from typing import List, Tuple, Union, Optional
