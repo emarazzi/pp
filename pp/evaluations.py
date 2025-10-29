@@ -7,11 +7,13 @@ def band_comparison(band1: Union[List, ndarray], band2:Union[List, ndarray]) -> 
     band1 = np.array(band1)
     band2 = np.array(band2)
     sum = 0
+    partial = []
     for b1,b2 in zip(band1,band2):
         sum += np.sum(abs(b1-b2)**2)
-    sum /= (band1.shape[1]+np.min([band1.shape[0],band2.shape[0]]))
+        partial.append(np.sum(abs(b1-b2)**2))
+    sum /= (band1.shape[1]*np.min([band1.shape[0],band2.shape[0]]))
     
-    return np.sqrt(sum)
+    return np.sqrt(sum),np.sqrt(np.array(partial)/np.min([band1.shape[0],band2.shape[0]]))
 
 def shift_vbm(bands: Union[List, ndarray],fermie: float) -> ndarray:
     bands = np.array(bands)

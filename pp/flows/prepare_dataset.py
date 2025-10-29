@@ -32,10 +32,10 @@ class GeneratePopulationSettings:
       A scaling matrix for transforming the lattice
       vectors. Has to be all integers
     training_size: int
-      Size of the training dataset (Default:500)
-    include_vacances: bool
-      Whether to include structure with vacances in your structure database.
-      Still not implemented.  
+      Size of the training dataset (Default: 500)
+    include_vacancies: bool
+      Whether to include structure with vacancies in your structure database.
+      Still not implemented.
     """
     structures_dir: Union[str, Path] = './'
     distance: float = 0.02
@@ -60,18 +60,18 @@ class QEScfSettings:
     fname_pwi_template: str
       Path to the template for pw scf calculations
     kspace_resolution: Optional[float] = None
-      K-space resolution for the scf calculations in Angostrom^-1.
+      K-space resolution for the scf calculations in Angstrom^-1.
     koffset: list[bool] = field(default_factory=lambda: [False, False, False])
       K-point offset for the scf calculations.
     num_qe_workers: Optional[int] = None
       Number of workers to execute pw.x calculations.
       Default to None that corresponds to one worker per structure
     """
-    structures_names: Optional[List[str]] = None 
+    structures_names: Optional[List[str]] = None
     qe_run_cmd: str = "srun --mpi=cray_shasta $PATHQE/bin/pw.x"
     fname_pwi_template: str = "scf.in"
     kspace_resolution: Optional[float] = None
-    koffset: List[bool] = field(default_factory=lambda: [False, False,False])
+    koffset: List[bool] = field(default_factory=lambda: [False, False, False])
     num_qe_workers: Optional[int] = None
 
 @dataclass
@@ -181,54 +181,59 @@ class GenerateDFTData(Maker):
         Returns:
           Flow: A JobFlow Flow that represents the end-to-end dataset generation.
         """
-        
+
         jobs: List[Job] = []
+
+        # Initialize job references to None
+        gen_structures_job = None
+        qe_run_jobs = None
+        pw2bgw_run_jobs = None
 
         if self.population_settings:
             if self.population_settings.structures_dir != './':
-                  os.makedirs(self.population_settings.structures_dir,exist_ok=True)
+                os.makedirs(self.population_settings.structures_dir, exist_ok=True)
             gen_structures_job = generate_training_population(
-            structure = structure,
-            structures_dir = self.population_settings.structures_dir,
-            distance = self.population_settings.distance, 
-            supercell_size = self.population_settings.supercell_size,
-            min_distance = self.population_settings.min_distance, 
-            size =  self.population_settings.training_size,     
+                structure=structure,
+                structures_dir=self.population_settings.structures_dir,
+                distance=self.population_settings.distance,
+                supercell_size=self.population_settings.supercell_size,
+                min_distance=self.population_settings.min_distance,
+                size=self.population_settings.training_size,
             )
             jobs.append(gen_structures_job)
 
         if self.scf_settings:
             qe_run_jobs = QEscf(dict(
-                  qe_run_cmd = self.scf_settings.qe_run_cmd,
-                  num_qe_workers = self.scf_settings.num_qe_workers,
-                  fname_pwi_template = self.scf_settings.fname_pwi_template,
-                  fname_structures = gen_structures_job.output if self.population_settings else self.scf_settings.structures_names,
-                  kspace_resolution = self.scf_settings.kspace_resolution,
-                  koffset = self.scf_settings.koffset
+                qe_run_cmd=self.scf_settings.qe_run_cmd,
+                num_qe_workers=self.scf_settings.num_qe_workers,
+                fname_pwi_template=self.scf_settings.fname_pwi_template,
+                fname_structures=gen_structures_job.output if gen_structures_job else self.scf_settings.structures_names,
+                kspace_resolution=self.scf_settings.kspace_resolution,
+                koffset=self.scf_settings.koffset
             ))
             jobs.append(qe_run_jobs)
 
         if self.pw2bgw_settings:
             pw2bgw_run_jobs = QEpw2bgw(
-                  scf_outdir = qe_run_jobs.output if self.scf_settings else self.pw2bgw_settings.qe_scf_outdir,
-                  pw2bgw_command = self.pw2bgw_settings.pw2bgw_run_cmd,
-                  fname_pw2bgw_template = self.pw2bgw_settings.fname_pw2bgw_template,
-                  num_workers = self.pw2bgw_settings.num_p2b_workers
+                scf_outdir=qe_run_jobs.output if qe_run_jobs else self.pw2bgw_settings.qe_scf_outdir,
+                pw2bgw_command=self.pw2bgw_settings.pw2bgw_run_cmd,
+                fname_pw2bgw_template=self.pw2bgw_settings.fname_pw2bgw_template,
+                num_workers=self.pw2bgw_settings.num_p2b_workers
             )
             jobs.append(pw2bgw_run_jobs)
 
         if self.hpro_settings:
             if self.hpro_settings.ao_hamiltonian_dir != './':
-                os.makedirs(self.hpro_settings.ao_hamiltonian_dir,exist_ok=True)
+                os.makedirs(self.hpro_settings.ao_hamiltonian_dir, exist_ok=True)
             hpro_job = HPROWrapper(
-                  qe_run_output = qe_run_jobs.output if self.scf_settings else self.hpro_settings.qe_scf_outdir,
-                  ion_dir = self.hpro_settings.ion_dir,
-                  ao_hamiltonian_dir = self.hpro_settings.ao_hamiltonian_dir,
-                  upf_dir = self.hpro_settings.upf_dir,
-                  ecutwfn = self.hpro_settings.ecutwfn,
-                  metadata = {'has_pw2bgw_completed':pw2bgw_run_jobs.output if self.pw2bgw_settings else True}, 
+                qe_run_output=qe_run_jobs.output if qe_run_jobs else self.hpro_settings.qe_scf_outdir,
+                ion_dir=self.hpro_settings.ion_dir,
+                ao_hamiltonian_dir=self.hpro_settings.ao_hamiltonian_dir,
+                upf_dir=self.hpro_settings.upf_dir,
+                ecutwfn=self.hpro_settings.ecutwfn,
+                metadata={'has_pw2bgw_completed': pw2bgw_run_jobs.output if pw2bgw_run_jobs else False},
             )
 
             jobs.append(hpro_job)
 
-        return Flow(jobs, output = [j.output for j in jobs], name=self.name)
+        return Flow(jobs, output=[j.output for j in jobs], name=self.name)
