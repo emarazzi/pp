@@ -66,6 +66,8 @@ class QEScfSettings:
     num_qe_workers: Optional[int] = None
       Number of workers to execute pw.x calculations.
       Default to None that corresponds to one worker per structure
+    enforce_2d: bool
+      Whether to enforce 2D k-point sampling (i.e., set k-point in z direction to 1).
     """
     structures_names: Optional[List[str]] = None
     qe_run_cmd: str = "srun --mpi=cray_shasta $PATHQE/bin/pw.x"
@@ -73,6 +75,7 @@ class QEScfSettings:
     kspace_resolution: Optional[float] = None
     koffset: List[bool] = field(default_factory=lambda: [False, False, False])
     num_qe_workers: Optional[int] = None
+    enforce_2d: bool = False
 
 @dataclass
 class QEPw2bgwSettings:
@@ -209,7 +212,8 @@ class GenerateDFTData(Maker):
                 fname_pwi_template=self.scf_settings.fname_pwi_template,
                 fname_structures=gen_structures_job.output if gen_structures_job else self.scf_settings.structures_names,
                 kspace_resolution=self.scf_settings.kspace_resolution,
-                koffset=self.scf_settings.koffset
+                koffset=self.scf_settings.koffset,
+                enforce_2d=self.scf_settings.enforce_2d,
             ))
             jobs.append(qe_run_jobs)
 
