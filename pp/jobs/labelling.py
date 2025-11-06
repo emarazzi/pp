@@ -34,6 +34,7 @@ def qe_params_from_config(config: dict):
                 "kspace_resolution" : Kspace_resolution,
                 "koffset": Koffset,
                 "fname_structures": fname_structures,
+                "enforce_2d": enforce_2d,
             }
 
     Returns:
@@ -48,6 +49,7 @@ def qe_params_from_config(config: dict):
         "kspace_resolution" : None,
         "koffset": [False, False, False],
         "fname_structures": None,
+        "enforce_2d": False,
     }    
 
     # Update parameters with values from the config file
@@ -75,6 +77,12 @@ class QEstaticLabelling(Maker):
         Path to ASE-readible file containing the structures to be computed.
     num_qe_workers: int | None
         Number of workers to use for the calculations. If None, defaults to the number of structures.
+    kspace_resolution: float | None
+        K-space resolution in Angstrom^-1, used to set the K-points in the pwi file.
+    koffset: list[bool]
+        K-points offset in the pwi file.
+    enforce_2d: bool
+        Whether to enforce 2D k-point sampling (i.e., set k-point in z direction to 1).
     """
 
     name: str = "do_qe_labelling"
@@ -84,6 +92,7 @@ class QEstaticLabelling(Maker):
     num_qe_workers: int | None = None #Number of workers to use for the calculations. 
     kspace_resolution: float | None = None #K-space resolution in Angstrom^-1, used to set the K-points in the pwi file
     koffset: list[bool] = field(default_factory=lambda: [False, False, False]) #K-points offset in the pwi file
+    enforce_2d: bool = False #Whether to enforce 2D k-point sampling (i.e., set k-point in z direction to 1)
     
     def make(self):
         #Define jobs
@@ -253,6 +262,7 @@ class QEstaticLabelling(Maker):
             atoms=structure,
             Kspace_resolution=self.kspace_resolution,
             Koffset=self.koffset,
+            enforce_2d=self.enforce_2d
         )        
 
         #Write cell lines
@@ -281,6 +291,7 @@ class QEstaticLabelling(Maker):
             atoms: Atoms,
             Kspace_resolution: float | None = None,
             Koffset: list[bool] = [False, False, False],
+            enforce_2d: bool = False
         ):
             """
             Set the K-points in the pwi file based on user definition or K-space resolution.
@@ -302,7 +313,10 @@ class QEstaticLabelling(Maker):
 
                     #Format k-points lines
                     kpoints_lines.append(f"\nK_POINTS automatic\n") #Header for MP-grid
+                    if enforce_2d:
+                        MP_mesh[2] = 1 #Set k-point in z direction to 1 for 2D systems
                     Kpoint_line = f"{MP_mesh[0]} {MP_mesh[1]} {MP_mesh[2]}" #K-points grid line
+                    
                     for offset in Koffset: #Add offset
                         if offset: Kpoint_line += " 1"
                         else: Kpoint_line += " 0"
