@@ -309,12 +309,10 @@ class QEstaticLabelling(Maker):
                     
                     #Find Kpoints grid
                     #TODO: use structure_type info to generalize to non-periodic systems (3d, 2d, 1d, 0d)
-                    MP_mesh = self._compute_kpoints_grid(cell, Kspace_resolution)
+                    MP_mesh = self._compute_kpoints_grid(cell, Kspace_resolution,enforce_2d)
 
                     #Format k-points lines
                     kpoints_lines.append(f"\nK_POINTS automatic\n") #Header for MP-grid
-                    if enforce_2d:
-                        MP_mesh[2] = 1 #Set k-point in z direction to 1 for 2D systems
                     Kpoint_line = f"{MP_mesh[0]} {MP_mesh[1]} {MP_mesh[2]}" #K-points grid line
                     
                     for offset in Koffset: #Add offset
@@ -339,8 +337,8 @@ class QEstaticLabelling(Maker):
                     raise ValueError(f"K_POINTS format: {tmp_pwi_lines[idx_kpoints_line]} is unknown in pwi template file")
             
             return kpoints_lines
-    
-    def _compute_kpoints_grid(self, cell, Kspace_resolution):
+
+    def _compute_kpoints_grid(self, cell, Kspace_resolution, enforce_2d):
         """
         Compute the k-points grid using Monkhorst-Pack method based on the cell and K-space resolution.
         """
@@ -352,6 +350,8 @@ class QEstaticLabelling(Maker):
 
         #Compute mesh size
         mesh = [int(np.ceil(L / Kspace_resolution)) for L in lengths]  
+        if enforce_2d:
+            mesh[2] = 1  #Set k-point in z direction to 1 for 2D systems
         print(f"Computed k-points mesh: {mesh} for K-space resolution: {Kspace_resolution} Angstrom^-1") #DEBUG
 
         return mesh
