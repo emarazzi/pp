@@ -105,7 +105,7 @@ def _validate_positive(value: float | int, param_name: str, allow_zero: bool = F
 def generate_training_population(
     structure: Structure,
     structures_dir: str | Path,
-    supercell_size: list[int] = None,
+    supercell_size: list[int] | None = None,
     distance: float = 0.1,
     min_distance: float | None = None,
     size: int = 200,
@@ -387,7 +387,28 @@ class KPath:
                 f.write(text + "\n")
         else:
             print(text)
+    
+    def get_kpoints_list(self, cart_coords: bool = False) -> list:
+        """
+        Get the list of k-points along the path with the specified divisions.
+        """
+        kpoints = []
+        divisions = self.get_divisions()
+        hs_points = self.HSPoints
+        if cart_coords:
+            hs_points = hs_points @ self.bvecs
 
+        for i in range(len(hs_points) - 1):
+            start = hs_points[i]
+            end = hs_points[i + 1]
+            ndiv = divisions[i]
+
+            for j in range(ndiv):
+                k = start + (end - start) * j / ndiv
+                kpoints.append(k.tolist())
+        # Append the last high-symmetry point
+        kpoints.append(hs_points[-1].tolist())
+        return kpoints
 
 def read_eig_hpro(filename: str | Path) -> ndarray:
     """

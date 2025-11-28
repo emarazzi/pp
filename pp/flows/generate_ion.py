@@ -66,7 +66,8 @@ class GenerateIons(Maker):
                 jobs.append(job_ion)
 
         # Create a job to copy the ion files to the save directory
-        os.makedirs(save_ion_folder, exist_ok=True)
+        if not Path(save_ion_folder).exists():
+            Path(save_ion_folder).mkdir(parents=True, exist_ok=True)
         job_copy: Job = cp_ion(
             outdirs = [job.output for job in jobs],
             ion_dir = save_ion_folder

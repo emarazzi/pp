@@ -364,3 +364,29 @@ def band_distance(ref: ndarray, new: ndarray, fermie: float, nu: float, sigma: f
             eta += np.sqrt(weighted_sum / weight_sum)
 
     return eta
+
+
+def band_folding(
+        bands: list|ndarray,
+        supercell_size:list,
+        reciprocal_lattice:list|ndarray
+        ) -> ndarray:
+    """
+    Fold band structure into the supercell Brillouin zone.
+
+    Parameters
+    ----------
+    bands : list | ndarray
+        Original band structure with shape (n_bands, n_kpoints)
+    supercell_size : list
+        Supercell size as a list of integers [n1, n2, n3]
+    reciprocal_lattice : list | ndarray
+        Reciprocal lattice vectors as a 3x3 array
+    
+    Returns
+    -------
+    ndarray
+        Folded band structure with shape (n_bands, n_kpoints_supercell)
+    """
+    bands_array = _validate_bands_input(bands, "bands")
+    

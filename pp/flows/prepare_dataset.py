@@ -6,7 +6,7 @@ from pp.jobs.jobs import QEscf, QEpw2bgw
 from pp.jobs.hpro import HPROWrapper
 from typing import List, Tuple, Union, Optional
 import os
-
+from pp.utils import generate_training_population
 __all__ = [
     'GenerateDFTData'
 ]
@@ -193,8 +193,9 @@ class GenerateDFTData(Maker):
         pw2bgw_run_jobs = None
 
         if self.population_settings:
-            if self.population_settings.structures_dir != './':
-                os.makedirs(self.population_settings.structures_dir, exist_ok=True)
+            structures_dir = Path(self.population_settings.structures_dir)
+            if not structures_dir.exists():
+                structures_dir.mkdir(parents=True, exist_ok=True)
             gen_structures_job = generate_training_population(
                 structure=structure,
                 structures_dir=self.population_settings.structures_dir,
@@ -227,8 +228,9 @@ class GenerateDFTData(Maker):
             jobs.append(pw2bgw_run_jobs)
 
         if self.hpro_settings:
-            if self.hpro_settings.ao_hamiltonian_dir != './':
-                os.makedirs(self.hpro_settings.ao_hamiltonian_dir, exist_ok=True)
+            ao_dir = Path(self.hpro_settings.ao_hamiltonian_dir)
+            if not ao_dir.exists():
+                ao_dir.mkdir(parents=True, exist_ok=True)
             hpro_job = HPROWrapper(
                 qe_run_output=qe_run_jobs.output if qe_run_jobs else self.hpro_settings.qe_scf_outdir,
                 ion_dir=self.hpro_settings.ion_dir,
