@@ -1,6 +1,6 @@
 
 from dataclasses import dataclass, field
-from monty import os
+import os
 from jobflow import Maker, job, Flow, Job
 from pathlib import Path
 from pp.jobs.hpro import HPROWrapper, DiagWrapper
