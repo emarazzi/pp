@@ -47,7 +47,7 @@ def HPROWrapper(
         Flow with the HPRO jobs    
     """
     
-    outputs:dict = {'ao_dirs':[]}
+    outputs: list = []
     jobs: list[Job] = []
     if np.all([isinstance(out, dict) for out in qe_run_output]):
         # extract only successful folders
@@ -70,7 +70,7 @@ def HPROWrapper(
             ecutwfn = ecutwfn,
         )
         jobs.append(hpro_job)
-        outputs['ao_dirs'].append(hpro_job.output)
+        outputs.append(hpro_job.output)
     
     flow = Flow(jobs=jobs,output=outputs)
 
@@ -84,7 +84,7 @@ def ReconstructWrapper(
     ao_hamiltonian_dir: str | Path = './',
     upf_dir: str | Path = os.getenv('ESPRESSO_PSEUDO','./'),
     ecutwfn: int | float = 30.0
-) -> None:
+) -> str | Path:
     """
     Projection job
 
