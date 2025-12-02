@@ -184,7 +184,7 @@ def DiagWrapper(
             efermi = efermi
         )
         jobs.append(hpro_job)
-        output['ao_dirs'].append(ao_dir)
+        output['ao_dirs'].append(hpro_job.output)
         structure = load_structure(path=ao_dir,interface='deeph')
         save_pymatgen_structure(structure,os.path.join(ao_dir,f'{name}.cif'))
     
