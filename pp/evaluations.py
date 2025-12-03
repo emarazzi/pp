@@ -389,4 +389,28 @@ def band_folding(
         Folded band structure with shape (n_bands, n_kpoints_supercell)
     """
     bands_array = _validate_bands_input(bands, "bands")
-    
+
+
+def calculate_shift(bands_a,bands_b) -> float:
+    """
+    Function to calculate the optimal shift between two bands
+    to align their centers.
+
+    Parameters
+    ----------
+    bands_a : list | ndarray
+        First band structure
+    bands_b : list | ndarray
+        Second band structure
+
+    Returns
+    -------
+    float
+        Optimal shift value to align the centers of the two bands
+    """
+    bands_a = np.array(bands_a)
+    bands_b = np.array(bands_b)
+    center_a = np.mean(bands_a)
+    center_b = np.mean(bands_b)
+
+    return center_b - center_a
