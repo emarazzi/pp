@@ -9,6 +9,8 @@ from scipy.sparse.linalg import lsmr
 from tqdm import tqdm
 import sys
 from scipy.sparse import coo_matrix
+from HPRO.matlcao import MatLCAO
+
 
 def compute_kinetic_energy_only(
         structure_path: str, 
@@ -19,7 +21,7 @@ def compute_kinetic_energy_only(
         kinetic_energy_filename: str = 'kinetic_energy.h5',
         savedir: str | None = './',
         energy_unit: bool = True
-        ) -> HPRO.matlcao.MatLCAO:
+        ) -> MatLCAO:
     # 1. Load the material structure 
     structure = load_structure(structure_path, structure_interface)
     
