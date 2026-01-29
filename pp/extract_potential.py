@@ -71,7 +71,7 @@ def compute_potential_ij(
         kinetic_energy_filename: str = 'kinetic_energy.h5',
         potential_filename: str = 'potential_energy.h5',
         energy_unit: bool = True
-        ) -> HPRO.matlcao.MatLCAO:
+        ) -> MatLCAO:
     
 
     mat_h = load_deeph_HS(matrices_path, hamiltonians_filename, energy_unit=energy_unit)
@@ -222,7 +222,7 @@ def extract_potential_in_real_space(
         shift_cart: np.ndarray = np.zeros(3),
         ao_basis_folder: str = './',
         output_filename: str = 'Vr.xyzv'                         
-):
+) -> None:
 
     mat_k = compute_kinetic_energy_only(
         structure_path=structure_path, 
