@@ -616,3 +616,25 @@ def cp_ion(outdirs: str | Path | list[str] | list[Path], ion_dir: str | Path) ->
             copy(src=ionf, dst=ion_dir)
 
     return ion_dir
+
+def read_pdos(filename:str) -> tuple:
+    """
+    Function to read the PDOS from a projwfc.x
+
+    Args:
+        filename (str): path to the projwfc.x output file
+    Returns:
+        tuple(np.ndarray,np.ndarray): energies and PDOS array
+    """
+    with open(filename,'r') as f:
+        lines = f.readlines()
+    orbital_type_number = len(lines[1].split())-2
+    pdos = [[] for _ in range(orbital_type_number)]
+    energies = []
+    for line in lines:
+        if '#' not in line:
+            data = line.split()[-(orbital_type_number):]
+            energies.append(float(line.split()[0]))
+            for i in range(orbital_type_number):
+                pdos[i].append(float(data[i]))
+    return np.array(energies), np.array(pdos)

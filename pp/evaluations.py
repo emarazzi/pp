@@ -185,6 +185,59 @@ def shift_cbm(bands: list | ndarray, fermie: float) -> ndarray:
     # Return shifted copy to preserve immutability
     return bands_array - bottom_cb
 
+def shift_midgap(bands: list | ndarray, fermie: float) -> ndarray:
+    """
+    Shift band energies so the mid-gap energy is at zero.
+
+    Computes the mid-gap energy as the average of the conduction band minimum
+    and valence band maximum, then shifts all bands so that this energy becomes zero.
+    Returns a copy of the shifted bands.
+
+    Parameters
+    ----------
+    bands : list | ndarray
+        Band energies with shape (n_bands, n_kpoints) or (n_kpoints,)
+    fermie : float
+        Fermi energy level
+
+    Returns
+    -------
+    ndarray
+        Shifted band energies (copy of input)
+
+    Raises
+    ------
+    ValueError
+        If no bands exist above or below the Fermi level
+
+    Examples
+    --------
+    >>> bands = np.array([[-1.0, -0.9], [0.5, 0.6], [2.0, 2.1]])
+    >>> shifted = shift_midgap(bands, fermie=0.0)
+    """
+    bands_array = _validate_bands_input(bands, "bands")
+
+    below_fermi_mask = bands_array < fermie
+    above_fermi_mask = bands_array > fermie
+
+    if not np.any(below_fermi_mask):
+        raise ValueError(
+            f"No bands found below Fermi level ({fermie}). "
+            f"Band range: [{np.min(bands_array):.3f}, {np.max(bands_array):.3f}]"
+        )
+
+    if not np.any(above_fermi_mask):
+        raise ValueError(
+            f"No bands found above Fermi level ({fermie}). "
+            f"Band range: [{np.min(bands_array):.3f}, {np.max(bands_array):.3f}]"
+        )
+
+    top_vb = np.max(bands_array[below_fermi_mask])
+    bottom_cb = np.min(bands_array[above_fermi_mask])
+    mid_gap = 0.5 * (top_vb + bottom_cb)
+
+    # Return shifted copy to preserve immutability
+    return bands_array - mid_gap
 
 def get_bandgap(bands: list | ndarray, fermie: float) -> float:
     """
